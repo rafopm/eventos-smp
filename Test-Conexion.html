@@ -3,25 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Test Conexión v2 - Llaves nuevas</title>
+<title>Test Conexión v3 - Hardcodeado</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- CDN UMD correcto para llaves sb_publishable_ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script>
+// HARDCODEADO - no usa config.js para aislar el problema
+window.SUPABASE_URL = "https://pgnlafozaukhdqlxfcfk.supabase.co";
+window.SUPABASE_ANON_KEY = "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
+</script>
 </head>
 <body class="min-h-screen bg-[#0f172a] text-white p-6">
 <main class="max-w-2xl mx-auto">
-<h1 class="text-2xl font-black">Test Conexión v2 - Nuevo formato</h1>
-<p class="text-white/50 text-sm mt-1">Soporta sb_publishable_...</p>
+<h1 class="text-2xl font-black">Test v3 - Hardcodeado (sin config.js)</h1>
+<p class="text-white/50 text-sm">Si este funciona, el problema era el cache de config.js</p>
 <div id="logs" class="mt-6 grid gap-3 text-sm font-mono"></div>
 
 <div class="mt-8 bg-white/[0.05] border border-white/10 rounded-2xl p-6">
-<h2 class="font-bold">Config actual</h2>
-<pre id="configShow" class="mt-2 text-xs bg-black/50 p-3 rounded-xl overflow-auto"></pre>
-<button id="btnReload" class="mt-3 w-full bg-white/10 py-2 rounded-xl text-sm">Recargar config.js?v=xxx (bypass cache)</button>
-</div>
-
-<div class="mt-4 bg-white/[0.05] border border-white/10 rounded-2xl p-6">
-<h2 class="font-bold">Probar Login</h2>
+<h2 class="font-bold">Login</h2>
 <input id="email" value="eventos@colegiosanmartin.edu.pe" class="mt-3 w-full rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
 <input id="pass" type="password" placeholder="password" class="mt-2 w-full rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
 <button id="btnLogin" class="mt-3 w-full bg-lime-300 text-black font-bold py-3 rounded-xl">Probar Login</button>
@@ -34,60 +32,48 @@ function log(msg, type='info'){
   div.className='p-3 rounded-xl border '+(type==='ok'?'bg-emerald-500/10 border-emerald-500/20 text-emerald-200':type==='error'?'bg-red-500/10 border-red-500/20 text-red-200':'bg-white/[0.05] border-white/10 text-white/70');
   div.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
   document.getElementById('logs').appendChild(div);
+  console.log(msg);
 }
 
 let supabaseClient = null;
 
-async function loadConfig(){
-  const url = `config.js?v=${Date.now()}`;
-  log(`Cargando ${url}...`);
-  try{
-    const res = await fetch(url);
-    const text = await res.text();
-    document.getElementById('configShow').textContent = text.slice(0,800);
-    if(!res.ok){ log(`config.js HTTP ${res.status} - revisa que existe en GitHub`, 'error'); return; }
-    if(text.includes('API_BASE')){ log('config.js todavía tiene API_BASE viejo', 'error'); return; }
-    if(!text.includes('SUPABASE_URL')){ log('config.js no tiene SUPABASE_URL', 'error'); return; }
-    // Ejecutar el JS manualmente para definir variables
-    const script = document.createElement('script');
-    script.textContent = text;
-    document.head.appendChild(script);
-    log('config.js ejecutado manualmente', 'ok');
-  }catch(e){ log(`Error fetch config.js: ${e.message}`, 'error'); }
-}
-
 async function test(){
-  await loadConfig();
-  
-  log(`SUPABASE_URL = ${window.SUPABASE_URL || 'NO DEFINIDO'}`, window.SUPABASE_URL ? 'ok' : 'error');
-  log(`ANON_KEY = ${window.SUPABASE_ANON_KEY ? window.SUPABASE_ANON_KEY.slice(0,20)+'...' : 'NO DEFINIDO'}`, window.SUPABASE_ANON_KEY ? 'ok' : 'error');
-  
-  if(!window.SUPABASE_URL){ log('Falta SUPABASE_URL - revisa config.js', 'error'); return; }
+  log(`URL hardcodeada: ${window.SUPABASE_URL}`, 'ok');
+  log(`KEY: ${window.SUPABASE_ANON_KEY.slice(0,25)}...`, 'ok');
   
   if(!window.supabase || !window.supabase.createClient){
-    log('Librería supabase no cargó desde CDN UMD', 'error');
+    log('ERROR: window.supabase.createClient no existe - CDN no cargó', 'error');
+    log(`window.supabase = ${typeof window.supabase}`, 'error');
     return;
   }
-  log('Librería supabase UMD cargada', 'ok');
+  log('Librería supabase UMD OK', 'ok');
   
-  supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  window.supabaseClient = supabaseClient;
-  log('Cliente creado con sb_publishable_...', 'ok');
+  try{
+    supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    window.supabaseClient = supabaseClient;
+    log('Cliente creado con sb_publishable_... OK', 'ok');
+  }catch(e){
+    log(`ERROR creando cliente: ${e.message}`, 'error');
+    return;
+  }
   
-  const {data, error} = await supabaseClient.from('events').select('*').limit(1);
-  if(error){ log(`SELECT events ERROR: ${error.message}`, 'error'); }
-  else{ log(`SELECT events OK: ${data.length} filas`, 'ok'); }
+  try{
+    const {data, error} = await supabaseClient.from('events').select('*').limit(1);
+    if(error){ log(`SELECT events ERROR: ${error.message} | code: ${error.code}`, 'error'); }
+    else{ log(`SELECT events OK: ${data.length} filas - CONEXIÓN FUNCIONA!`, 'ok'); }
+  }catch(e){
+    log(`Excepción SELECT: ${e.message}`, 'error');
+  }
 }
 
-document.getElementById('btnReload').addEventListener('click', ()=>location.reload(true));
 document.getElementById('btnLogin').addEventListener('click', async()=>{
   const email=document.getElementById('email').value.trim();
   const pass=document.getElementById('pass').value;
   const resDiv=document.getElementById('loginResult');
-  if(!supabaseClient){ resDiv.textContent='Cliente no creado aún'; return; }
+  if(!supabaseClient){ resDiv.textContent='Cliente no creado'; return; }
   resDiv.textContent='Logueando...';
   const {data, error} = await supabaseClient.auth.signInWithPassword({email, password: pass});
-  if(error){ resDiv.textContent=`ERROR: ${error.message}`; log(`Login error: ${error.message}`, 'error'); }
+  if(error){ resDiv.textContent=`ERROR: ${error.message}`; log(`Login ERROR: ${error.message}`, 'error'); }
   else{ resDiv.textContent=`OK: ${data.user.email}`; log(`Login OK: ${data.user.email}`, 'ok'); }
 });
 
