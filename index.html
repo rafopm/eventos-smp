@@ -3,117 +3,122 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Reserva entrada</title>
+<title>Registro - Evento</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="config.js"></script>
-</head>
-<body class="min-h-screen bg-[#020617] text-white flex items-center justify-center p-4">
-<div class="w-full max-w-5xl grid lg:grid-cols-2 gap-6">
-  <div class="bg-white/[0.05] border border-white/10 rounded-[32px] p-8">
-    <div id="eventInfo">Cargando evento...</div>
-  </div>
-  <div class="bg-[#0e1428]/90 border border-white/10 rounded-[32px] p-8">
-    <div id="stepEmail">
-      <h2 class="text-2xl font-bold">Reserva tu entrada</h2>
-      <input id="emailCheck" type="email" placeholder="tu@correo.com" class="mt-4 w-full rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-4">
-      <button id="btnVerificar" class="mt-4 w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">Continuar</button>
-      <div id="emailStatus" class="hidden mt-4 p-4 rounded-2xl text-sm"></div>
-    </div>
-    <div id="stepForm" class="hidden">
-      <h2 class="text-2xl font-bold">Completa tus datos</h2>
-      <p class="text-sm text-white/50">Correo: <span id="verifiedEmail" class="text-white font-bold"></span></p>
-      <form id="registrationForm" class="mt-6 grid gap-4">
-        <div class="grid grid-cols-2 gap-3"><input id="nombres" required placeholder="Nombres" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3"><input id="apellidos" required placeholder="Apellidos" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3"></div>
-        <input id="nombreEstudiante" required placeholder="Nombre estudiante" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3">
-        <input id="dni" required pattern="[0-9]{8}" maxlength="8" placeholder="DNI adulto 8 dígitos" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3">
-        <div class="grid grid-cols-2 gap-3"><input id="gradoSeccion" required placeholder="Grado" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3"><input id="parentesco" required placeholder="Parentesco" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3"></div>
-        <button id="btnEnviar" type="submit" class="w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">Reservar mi entrada</button>
-        <div id="formStatus" class="hidden p-4 rounded-2xl text-sm"></div>
-      </form>
-    </div>
-    <div id="stepExists" class="hidden text-center">
-      <h2 class="text-2xl font-bold">¡Ya tienes entrada!</h2>
-      <div id="qrExists" class="mt-4 flex justify-center bg-white p-4 rounded-2xl"></div>
-      <p id="existsId" class="mt-4 font-black text-sky-300"></p>
-      <button id="btnReenviar" class="mt-6 w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">Reenviar QR a mi correo</button>
-    </div>
-  </div>
-</div>
-<div id="qrHidden" class="hidden"></div>
 <script>
-let activeEvent=null, currentEmail="";
-async function loadActiveEvent(){
-  const {data, error} = await supabase.from('events').select('*').eq('activo',true).limit(1).single();
-  if(error || !data){ document.getElementById('eventInfo').innerHTML='No hay inscripciones abiertas'; return; }
-  activeEvent=data;
-  document.getElementById('eventInfo').innerHTML=`<div class="inline-flex bg-emerald-500/15 text-emerald-300 px-3 py-1 rounded-full text-xs font-bold">● Inscripciones abiertas</div><h1 class="text-4xl font-extrabold mt-4">${data.nombre}</h1><p class="text-white/50 mt-3 text-sm">${data.descripcion||''}</p><div class="mt-6 bg-white/[0.04] border border-white/5 rounded-2xl p-5"><p class="text-white/80 text-sm">${data.mensaje_bienvenida||''}</p></div>`;
+window.SUPABASE_URL = "https://pgnlafozaukhdqlxfcfk.supabase.co";
+window.SUPABASE_ANON_KEY = "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
+// PEGA AQUÍ TU URL DE APPS SCRIPT WEB APP
+window.APPS_SCRIPT_EMAIL_URL = "https://script.google.com/macros/s/AKfycbyvn-JNmLOvy82o9EW8F5zj1OwDe2cpsJAeoH3joIUN2bsFVtCrBtO0oCKChUx1RO3VXA/exec";
+</script>
+<script src="config.js?v=4"></script>
+</head>
+<body class="min-h-screen bg-[#0a0f0d] text-white flex items-center justify-center p-4">
+<main class="w-full max-w-md bg-white/[0.05] border border-white/10 rounded-[24px] p-6">
+<h1 class="text-2xl font-black">Registro Feria</h1>
+<p class="text-white/50 text-sm mt-1">Te enviamos tu QR a eventos@colegiosanmartin.edu.pe</p>
+
+<form id="regForm" class="mt-6 grid gap-3">
+<input id="nombres" required placeholder="Nombres" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<input id="apellidos" required placeholder="Apellidos" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<input id="dni" required placeholder="DNI" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<input id="email" type="email" required placeholder="Correo donde recibir QR" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<input id="estudiante" placeholder="Nombre estudiante (opcional)" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<button id="btnSubmit" class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Registrar y enviar QR</button>
+<p id="msg" class="hidden text-xs p-3 rounded-xl"></p>
+</form>
+
+<div id="qrResult" class="hidden mt-6 text-center bg-white text-black p-6 rounded-[20px]">
+<p class="font-bold text-sm">¡Registro OK! QR enviado</p>
+<div id="qrcode" class="mt-4 flex justify-center"></div>
+<p id="qrId" class="mt-3 font-mono text-xs"></p>
+<p class="text-[11px] text-black/50 mt-2">Si no te llega el email, muestra este QR en el ingreso + DNI físico</p>
+<a id="btnVote" href="vote.html" class="mt-4 inline-block text-xs bg-black text-white px-4 py-2 rounded-full">Ir a votar (cuando ingreses)</a>
+</div>
+</main>
+
+<script>
+let supabaseClient;
+function initClient(){
+  if(!window.supabase?.createClient){ alert('CDN supabase no cargó'); return null; }
+  supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  window.supabaseClient = supabaseClient;
+  return supabaseClient;
 }
 
-function showStatus(el, t, type){
-  el.classList.remove('hidden');
-  el.className='mt-4 p-4 rounded-2xl text-sm '+(type==='success'?'bg-emerald-500/10 border border-emerald-500/20 text-emerald-200':type==='error'?'bg-red-500/10 border border-red-500/20 text-red-200':'bg-sky-500/10 border border-sky-500/20 text-sky-200');
-  el.textContent=t;
-}
-
-async function checkEmail(){
-  const email=document.getElementById('emailCheck').value.trim().toLowerCase();
-  const status=document.getElementById('emailStatus');
-  if(!email.includes('@')){ showStatus(status,'Correo inválido','error'); return; }
-  const {data, error} = await supabase.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', email).single();
-  if(data){
-    currentEmail=email;
-    document.getElementById('stepEmail').classList.add('hidden');
-    document.getElementById('stepExists').classList.remove('hidden');
-    document.getElementById('existsId').textContent='ID: '+data.id;
-    document.getElementById('qrExists').innerHTML='';
-    new QRCode(document.getElementById('qrExists'), {text: data.id, width:200, height:200});
-  }else{
-    currentEmail=email;
-    document.getElementById('verifiedEmail').textContent=email;
-    document.getElementById('stepEmail').classList.add('hidden');
-    document.getElementById('stepForm').classList.remove('hidden');
-  }
-}
-
-async function register(e){
+document.getElementById('regForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  const status=document.getElementById('formStatus');
-  const payload={
-    event_id: activeEvent.id,
-    nombres: document.getElementById('nombres').value.trim(),
-    apellidos: document.getElementById('apellidos').value.trim(),
-    nombre_estudiante: document.getElementById('nombreEstudiante').value.trim(),
-    dni: document.getElementById('dni').value.trim(),
-    grado_seccion: document.getElementById('gradoSeccion').value.trim(),
-    parentesco: document.getElementById('parentesco').value.trim(),
-    email: currentEmail,
-  };
-  showStatus(status,'Reservando...','');
-  const {data, error} = await supabase.from('registrations').insert(payload).select().single();
-  if(error){
-    if(error.code==='23505') showStatus(status,'Ya tienes entrada con ese correo','error');
-    else showStatus(status,error.message,'error');
-    return;
+  const btn=document.getElementById('btnSubmit');
+  const msg=document.getElementById('msg');
+  btn.disabled=true; btn.textContent='Registrando...';
+  msg.classList.remove('hidden'); msg.className='text-xs p-3 rounded-xl bg-white/10'; msg.textContent='Guardando...';
+  
+  try{
+    // 1. Buscar evento activo
+    const {data: ev, error: evError} = await supabaseClient.from('events').select('*').eq('activo', true).single();
+    if(evError || !ev){ throw new Error('No hay evento activo. Crea uno en admin.html'); }
+    
+    // 2. Crear registro (id = QR)
+    const payload={
+      event_id: ev.id,
+      nombres: document.getElementById('nombres').value.trim(),
+      apellidos: document.getElementById('apellidos').value.trim(),
+      dni: document.getElementById('dni').value.trim(),
+      email: document.getElementById('email').value.trim().toLowerCase(),
+      nombre_estudiante: document.getElementById('estudiante').value.trim()||null,
+      estado: 'REGISTRADO'
+    };
+    
+    const {data: reg, error} = await supabaseClient.from('registrations').insert(payload).select().single();
+    if(error) throw error;
+    
+    msg.textContent=`Registro OK: ${reg.id.slice(0,8)} - Enviando email...`;
+    
+    // 3. Mostrar QR en pantalla inmediatamente (no espera email)
+    const qrDiv=document.getElementById('qrResult');
+    qrDiv.classList.remove('hidden');
+    document.getElementById('qrId').textContent=reg.id;
+    document.getElementById('qrcode').innerHTML='';
+    new QRCode(document.getElementById('qrcode'), {text: reg.id, width: 200, height: 200});
+    
+    // 4. Enviar email via Apps Script (en segundo plano, no bloquea)
+    if(window.APPS_SCRIPT_EMAIL_URL && window.APPS_SCRIPT_EMAIL_URL.includes('/exec')){
+      try{
+        await fetch(window.APPS_SCRIPT_EMAIL_URL, {
+          method: 'POST',
+          mode: 'no-cors', // Apps Script requiere no-cors para evitar preflight
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            to: reg.email,
+            id: reg.id,
+            nombre: reg.nombres + ' ' + reg.apellidos,
+            evento: ev.nombre,
+            subject: `🎟️ Tu QR para ${ev.nombre}`
+          })
+        });
+        msg.textContent=`QR enviado a ${reg.email} (revisa spam) + mostrado aquí`;
+        msg.className='text-xs p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200';
+      }catch(emailErr){
+        console.error(emailErr);
+        msg.textContent=`Registro OK pero email falló (muestra este QR). Error: ${emailErr.message}`;
+        msg.className='text-xs p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200';
+      }
+    } else {
+      msg.textContent=`Registro OK: ${reg.id.slice(0,8)} - Configura APPS_SCRIPT_EMAIL_URL para enviar email`;
+      msg.className='text-xs p-3 rounded-xl bg-white/10';
+    }
+    
+  }catch(err){
+    msg.textContent='Error: '+err.message;
+    msg.className='text-xs p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
+  } finally {
+    btn.disabled=false; btn.textContent='Registrar y enviar QR';
   }
-  showStatus(status,`¡Reserva lista! ID: ${data.id} - Te enviamos QR a ${data.email}`,'success');
-  // Generar QR y enviar por Edge Function
-  document.getElementById('qrHidden').innerHTML='';
-  new QRCode(document.getElementById('qrHidden'), {text: data.id, width:300, height:300});
-  setTimeout(async ()=>{
-    const qrCanvas = document.querySelector('#qrHidden canvas');
-    const qrDataUrl = qrCanvas ? qrCanvas.toDataURL() : '';
-    // Llama a Edge Function para email (si la configuraste)
-    try{
-      await fetch(EDGE_FUNCTION_URL, {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${SUPABASE_ANON_KEY}`}, body: JSON.stringify({email: data.email, id: data.id, nombre: data.nombres+' '+data.apellidos, evento: activeEvent.nombre, qrDataUrl})});
-    }catch(err){ console.log('Email no enviado, Edge Function no configurada', err); }
-  }, 500);
-}
+});
 
-document.getElementById('btnVerificar').addEventListener('click', checkEmail);
-document.getElementById('registrationForm').addEventListener('submit', register);
-window.addEventListener('load', loadActiveEvent);
+window.addEventListener('load', ()=>{ supabaseClient=initClient(); });
 </script>
 </body>
 </html>
