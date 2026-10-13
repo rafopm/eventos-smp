@@ -3,203 +3,118 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin REAL - Eventos San Martín</title>
+<title>Admin Panel v2 - Resultados</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<!-- Fallback hardcodeado por si config.js falla por cache -->
 <script>
 window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
 window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
 </script>
-<script src="config.js?v=real"></script>
+<script src="config.js?v=8"></script>
 </head>
-<body class="min-h-screen bg-[#0f1210] text-white p-4 md:p-8">
+<body class="min-h-screen bg-[#10130c] text-white p-6">
 <main class="max-w-7xl mx-auto">
-<header class="flex justify-between items-center">
-<div>
-<h1 class="text-3xl font-black tracking-tight">Panel Admin REAL</h1>
-<p class="text-white/50 text-sm mt-1">Crea tu evento real aquí - con login seguro</p>
-<div id="status" class="mt-1 text-[11px] font-mono text-white/30"></div>
+<div class="flex justify-between items-center">
+<h1 class="text-3xl font-extrabold">Panel Admin - Feria San Martín v2</h1>
+<div class="flex gap-2">
+<a href="resultados.html" target="_blank" class="bg-amber-400 text-black px-4 py-2 rounded-xl font-bold text-sm">🏆 Ver Resultados Públicos</a>
+<a href="display.html" target="_blank" class="bg-white/10 px-4 py-2 rounded-xl text-sm">📺 Display</a>
 </div>
-<button id="logoutBtn" class="hidden text-xs bg-white/10 hover:bg-white/15 px-4 py-2 rounded-full">Cerrar sesión</button>
-</header>
-
-<!-- LOGIN -->
-<section id="loginSection" class="mt-10 max-w-md mx-auto bg-white/[0.05] border border-white/10 rounded-[20px] p-6">
-<h2 class="font-bold text-lg">Acceso admin</h2>
-<p class="text-xs text-white/40 mt-1">Solo eventos@colegiosanmartin.edu.pe</p>
-<form id="loginForm" class="mt-5 grid gap-3">
-<input id="loginEmail" type="email" required value="eventos@colegiosanmartin.edu.pe" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<input id="loginPass" type="password" required placeholder="Contraseña Supabase Auth" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Entrar</button>
-<p id="loginMsg" class="hidden text-xs p-3 rounded-xl"></p>
-</form>
-<div class="mt-4 text-[11px] text-white/30">Si no recuerdas la contraseña: Supabase Dashboard > Authentication > Users > Reset password</div>
-</section>
-
-<!-- CONTENIDO ADMIN -->
-<div id="adminContent" class="hidden">
-
-<!-- EVENTOS -->
-<section class="mt-8 grid lg:grid-cols-[400px_1fr] gap-6">
-<div class="bg-white/[0.05] border border-white/10 rounded-[20px] p-5">
-<h2 class="font-bold">Crear / Editar Evento REAL</h2>
+</div>
+<section class="mt-8 grid lg:grid-cols-2 gap-6">
+<div class="bg-white/[0.05] border border-white/10 rounded-2xl p-6">
+<h2 class="font-bold text-lg">Crear / Editar Evento</h2>
 <form id="eventForm" class="mt-4 grid gap-3">
 <input type="hidden" id="eventId">
-<input id="evNombre" required placeholder="Nombre: Feria Ciencias 2025" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<textarea id="evDesc" placeholder="Descripción interna (no se muestra)" rows="2" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm"></textarea>
-<input id="evFecha" type="date" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<textarea id="evMensaje" required placeholder="Mensaje bienvenida display: ¡Qué alegría que estés aquí, [NOMBRE]!" rows="2" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm"></textarea>
+<input id="evNombre" required placeholder="Nombre evento" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<textarea id="evDesc" placeholder="Descripción" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3"></textarea>
+<input id="evFecha" type="date" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<textarea id="evMensaje" placeholder="Mensaje bienvenida display - usa [NOMBRE] para personalizar" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3"></textarea>
 <div class="grid grid-cols-2 gap-3">
-<label class="text-[11px] text-white/50">Delay bienvenida (seg)<input id="evDelay" type="number" value="2" min="0" max="10" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2 text-sm"></label>
-<label class="text-[11px] text-white/50">Duración (seg)<input id="evDuracion" type="number" value="9" min="3" max="20" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2 text-sm"></label>
+<label class="text-xs">Delay bienvenida (seg)<input id="evDelay" type="number" value="0" min="0" max="10" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></label>
+<label class="text-xs">Duración bienvenida (seg)<input id="evDuracion" type="number" value="9" min="3" max="20" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></label>
 </div>
-<label class="flex gap-2 items-center text-sm"><input id="evActivo" type="checkbox" class="rounded"> <span>Evento ACTIVO (solo 1 activo a la vez)</span></label>
-<button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Guardar evento REAL</button>
-<button type="button" id="btnCancelEdit" class="hidden text-xs text-white/50">Cancelar edición</button>
+<label class="flex gap-2 text-sm"><input id="evActivo" type="checkbox"> Evento activo (solo uno activo)</label>
+<button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Guardar evento</button>
 </form>
 </div>
-
-<div class="bg-white/[0.05] border border-white/10 rounded-[20px] p-5">
-<div class="flex justify-between items-center">
-<h2 class="font-bold">Eventos existentes</h2>
-<button id="btnReloadEvents" class="text-xs bg-white/10 px-3 py-1 rounded-full">Recargar</button>
-</div>
+<div class="bg-white/[0.05] border border-white/10 rounded-2xl p-6">
+<h2 class="font-bold text-lg">Eventos</h2>
 <div id="eventList" class="mt-4 grid gap-2"></div>
 </div>
 </section>
-
-<!-- DETALLE EVENTO SELECCIONADO -->
 <section id="detailSection" class="hidden mt-8">
-<div class="bg-lime-300 text-black rounded-[20px] p-5 flex justify-between items-center">
-<div>
-<h2 class="font-black text-xl">Evento: <span id="selectedEventName"></span></h2>
-<p class="text-xs opacity-70">ID: <span id="selectedEventId" class="font-mono"></span></p>
-</div>
-<button onclick="document.getElementById('detailSection').classList.add('hidden')" class="text-xs bg-black/10 px-3 py-1 rounded-full">Cerrar</button>
-</div>
-
+<div class="bg-white/[0.05] border border-white/10 rounded-2xl p-6">
+<h2 class="font-bold text-xl">Configuración: <span id="selectedEventName" class="text-lime-300"></span></h2>
 <div class="mt-6 grid lg:grid-cols-2 gap-6">
-<!-- CATEGORIAS -->
-<div class="bg-white/[0.05] border border-white/10 rounded-[20px] p-5">
-<h3 class="font-bold">Categorías (genéricas)</h3>
-<p class="text-[11px] text-white/40">Ej: inicial, primaria, secundaria, innovación</p>
-<form id="catForm" class="mt-3 flex gap-2">
-<input id="catKey" required placeholder="key: secundaria" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2 text-sm">
-<input id="catLabel" required placeholder="Label: 3° Secundaria" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2 text-sm">
-<button class="bg-white text-black px-4 rounded-xl font-bold">+</button>
-</form>
+<div>
+<h3 class="font-bold">Categorías (ej: Primaria, Secundaria, etc)</h3>
+<form id="catForm" class="mt-3 flex gap-2"><input id="catKey" required placeholder="key: secundaria" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"><input id="catLabel" required placeholder="Label: Ej 3° Secundaria" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"><button class="bg-white text-black px-4 rounded-xl font-bold">+</button></form>
 <div id="catList" class="mt-4 grid gap-2"></div>
-
-<div class="mt-8">
-<h4 class="font-bold text-sm">Control votación por categoría</h4>
-<div id="voteControls" class="mt-3 grid gap-2"></div>
 </div>
-</div>
-
-<!-- PROYECTOS -->
-<div class="bg-white/[0.05] border border-white/10 rounded-[20px] p-5">
+<div>
 <h3 class="font-bold">Proyectos</h3>
 <form id="projForm" class="mt-3 grid gap-2">
-<select id="projCat" required class="rounded-xl bg-[#1a1d19] border border-white/10 px-3 py-2.5 text-sm"></select>
-<input id="projTitle" required placeholder="Título: Robot Sumo" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2 text-sm">
-<input id="projTeam" placeholder="Equipo: Juan, Ana - 5to A" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2 text-sm">
-<input id="projPhoto" placeholder="URL foto (opcional)" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2 text-sm">
-<button class="bg-white text-black font-bold py-2.5 rounded-xl">Agregar proyecto</button>
+<select id="projCat" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></select>
+<input id="projTitle" required placeholder="Título proyecto" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
+<input id="projTeam" placeholder="Equipo / integrantes" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
+<input id="projPhoto" placeholder="URL foto (opcional)" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
+<textarea id="projDesc" placeholder="Descripción (opcional)" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></textarea>
+<button class="bg-white text-black font-bold py-2 rounded-xl">Agregar proyecto</button>
 </form>
-<div id="projList" class="mt-4 grid gap-2 max-h-[500px] overflow-auto"></div>
+<div id="projList" class="mt-4 grid gap-2 max-h-[400px] overflow-auto"></div>
 </div>
 </div>
-
-<!-- REGISTROS Y VOTOS -->
-<div class="mt-6 bg-white/[0.05] border border-white/10 rounded-[20px] p-5">
+<!-- CONTROL VOTACION -->
+<div class="mt-8 grid lg:grid-cols-2 gap-6">
+<div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+<h3 class="font-bold">Control votación</h3>
+<p class="text-xs text-white/40 mt-1">Abre/cierra votación por categoría</p>
+<div id="voteControls" class="mt-3 grid gap-2"></div>
+</div>
+<div class="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+<h3 class="font-bold">Estadísticas rápidas</h3>
+<div id="quickStats" class="mt-3 text-sm grid gap-1 text-white/70"></div>
+</div>
+</div>
+<!-- RESULTADOS POR CATEGORIA - NUEVO CON TITULO -->
+<div class="mt-8 bg-gradient-to-br from-amber-500/10 to-violet-500/10 border border-amber-500/20 rounded-2xl p-6">
 <div class="flex justify-between items-center">
-<h3 class="font-bold">Registros y votos - <span id="regCount">0</span></h3>
+<h3 class="font-black text-xl">🏆 Resultados por categoría</h3>
 <div class="flex gap-2">
-<button id="btnExportRegs" class="text-xs bg-white text-black px-3 py-1.5 rounded-full font-bold">Export CSV</button>
-<button id="btnReloadRegs" class="text-xs bg-white/10 px-3 py-1.5 rounded-full">Recargar</button>
+<button id="btnRefreshResults" class="bg-white text-black px-3 py-1.5 rounded-lg text-xs font-bold">🔄 Actualizar</button>
+<button id="btnExportResults" class="bg-white/10 px-3 py-1.5 rounded-lg text-xs">📊 Exportar CSV</button>
 </div>
 </div>
-<div id="regList" class="mt-4 grid gap-1 max-h-[400px] overflow-auto text-[13px]"></div>
-<div id="voteStats" class="mt-6"></div>
+<p class="text-xs text-white/40 mt-1">Muestra título de categoría, votos por proyecto, orden 1er, 2do, 3er lugar</p>
+<div id="resultsByCategory" class="mt-6 grid gap-8"></div>
+</div>
+<!-- REGISTROS -->
+<div class="mt-8 bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+<h3 class="font-bold">Registros / Ingresos (últimos 100)</h3>
+<div id="regList" class="mt-3 max-h-96 overflow-auto grid gap-1 text-sm"></div>
+</div>
 </div>
 </section>
-</div>
 </main>
-
 <script>
-let supabaseClient;
-let selectedEventId = null;
-
+let supabaseClient=null;
+let selectedEventId=null;
 function initClient(){
-  const url = window.SUPABASE_URL;
-  const key = window.SUPABASE_ANON_KEY;
-  document.getElementById('status').textContent = `Conectado: ${url} | ${key.slice(0,22)}...`;
-  if(!window.supabase?.createClient){
-    document.getElementById('status').textContent = 'ERROR: CDN supabase no cargó - revisa internet';
-    return null;
-  }
-  const client = window.supabase.createClient(url, key);
-  window.supabaseClient = client;
-  return client;
+  supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return supabaseClient;
 }
-
-async function checkSession(){
-  const {data: {session}} = await supabaseClient.auth.getSession();
-  if(session){
-    document.getElementById('loginSection').classList.add('hidden');
-    document.getElementById('adminContent').classList.remove('hidden');
-    document.getElementById('logoutBtn').classList.remove('hidden');
-    document.getElementById('logoutBtn').textContent = session.user.email + ' - Salir';
-    loadEvents();
-  } else {
-    document.getElementById('loginSection').classList.remove('hidden');
-    document.getElementById('adminContent').classList.add('hidden');
-    document.getElementById('logoutBtn').classList.add('hidden');
-  }
-}
-
-// LOGIN
-document.getElementById('loginForm').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const email=document.getElementById('loginEmail').value.trim();
-  const pass=document.getElementById('loginPass').value;
-  const msg=document.getElementById('loginMsg');
-  msg.classList.remove('hidden');
-  msg.textContent='Verificando...';
-  msg.className='text-xs p-3 rounded-xl bg-white/10';
-  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password: pass});
-  if(error){
-    msg.textContent='Error: '+error.message;
-    msg.className='text-xs p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
-    return;
-  }
-  msg.textContent='Login OK';
-  checkSession();
-});
-
-document.getElementById('logoutBtn').addEventListener('click', async()=>{
-  await supabaseClient.auth.signOut();
-  location.reload();
-});
-
-// EVENTOS
 async function loadEvents(){
-  const {data, error} = await supabaseClient.from('events').select('*').order('created_at',{ascending:false});
+  const {data} = await supabaseClient.from('events').select('*').order('created_at',{ascending:false});
   const list=document.getElementById('eventList'); list.innerHTML='';
-  if(error){ list.innerHTML=`<p class="text-red-300 text-sm">Error: ${error.message}</p>`; return; }
-  if(data.length===0){ list.innerHTML='<p class="text-white/40 text-sm">No hay eventos. Crea el primero.</p>'; return; }
   data.forEach(ev=>{
-    const div=document.createElement('div');
-    div.className='flex justify-between items-center p-3 rounded-xl bg-white/[0.04] border border-white/10 hover:bg-white/[0.06]';
-    div.innerHTML=`<div><p class="font-bold text-sm">${ev.nombre} ${ev.activo?'<span class="ml-2 text-[10px] bg-lime-300 text-black px-2 py-0.5 rounded-full">ACTIVO</span>':''}</p><p class="text-[11px] text-white/50 mt-1">Delay ${ev.welcome_delay_seconds}s / Dur ${ev.welcome_duration_seconds}s | ${ev.fecha||'sin fecha'}</p><p class="text-[10px] font-mono text-white/30">${ev.id.slice(0,8)}</p></div><div class="flex flex-col gap-1"><button class="text-[11px] bg-white text-black px-3 py-1.5 rounded-full font-bold" onclick="selectEvent('${ev.id}')">Configurar</button><button class="text-[11px] bg-white/10 px-3 py-1 rounded-full" onclick="editEvent('${ev.id}')">Editar</button><button class="text-[11px] bg-red-500/10 text-red-300 px-3 py-1 rounded-full" onclick="deleteEvent('${ev.id}')">Borrar</button></div>`;
+    const div=document.createElement('div'); div.className='flex justify-between items-center p-3 rounded-xl bg-white/[0.04] border border-white/10';
+    div.innerHTML=`<div><p class="font-bold">${ev.nombre} ${ev.activo?'<span class="bg-lime-300 text-black text-[10px] px-2 py-0.5 rounded-full ml-2">ACTIVO</span>':''}</p><p class="text-xs text-white/50">Delay ${ev.welcome_delay_seconds||0}s / Dur ${ev.welcome_duration_seconds||9}s | ${new Date(ev.created_at).toLocaleDateString()}</p></div><div class="flex gap-2"><button class="text-xs bg-lime-300 text-black px-3 py-1.5 rounded-lg font-bold" onclick="selectEvent('${ev.id}')">Configurar</button><button class="text-xs bg-white/10 px-3 py-1 rounded-lg" onclick="editEvent('${ev.id}')">Editar</button></div>`;
     list.appendChild(div);
   });
 }
-
 async function editEvent(id){
-  const {data, error} = await supabaseClient.from('events').select('*').eq('id',id).single();
-  if(error){ alert(error.message); return; }
+  const {data} = await supabaseClient.from('events').select('*').eq('id',id).single();
   document.getElementById('eventId').value=data.id;
   document.getElementById('evNombre').value=data.nombre;
   document.getElementById('evDesc').value=data.descripcion||'';
@@ -208,201 +123,190 @@ async function editEvent(id){
   document.getElementById('evDelay').value=data.welcome_delay_seconds||0;
   document.getElementById('evDuracion').value=data.welcome_duration_seconds||9;
   document.getElementById('evActivo').checked=data.activo;
-  document.getElementById('btnCancelEdit').classList.remove('hidden');
-  window.scrollTo({top:0, behavior:'smooth'});
 }
-
-async function deleteEvent(id){
-  if(!confirm('¿Borrar evento REAL? Se borrarán categorías, proyectos, registros y votos de ese evento.')) return;
-  // Borrar en cascada manual (si no tienes CASCADE)
-  await supabaseClient.from('votes').delete().eq('event_id', id);
-  await supabaseClient.from('registrations').delete().eq('event_id', id);
-  await supabaseClient.from('projects').delete().eq('event_id', id);
-  await supabaseClient.from('categories').delete().eq('event_id', id);
-  const {error} = await supabaseClient.from('events').delete().eq('id', id);
-  if(error) alert(error.message); else loadEvents();
-}
-
-document.getElementById('eventForm').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const id=document.getElementById('eventId').value;
-  const payload={
-    nombre: document.getElementById('evNombre').value.trim(),
-    descripcion: document.getElementById('evDesc').value.trim()||null,
-    fecha: document.getElementById('evFecha').value||null,
-    mensaje_bienvenida: document.getElementById('evMensaje').value.trim()||'¡Bienvenido!',
-    welcome_delay_seconds: parseInt(document.getElementById('evDelay').value)||0,
-    welcome_duration_seconds: parseInt(document.getElementById('evDuracion').value)||9,
-    activo: document.getElementById('evActivo').checked
-  };
-  if(!payload.nombre){ alert('Pon nombre'); return; }
-  if(payload.activo){
-    await supabaseClient.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000');
-  }
-  let error;
-  if(id){
-    const res=await supabaseClient.from('events').update(payload).eq('id',id);
-    error=res.error;
-  } else {
-    const res=await supabaseClient.from('events').insert(payload).select().single();
-    error=res.error;
-    if(!error) selectedEventId=res.data.id;
-  }
-  if(error){ alert('Error: '+error.message); return; }
-  e.target.reset();
-  document.getElementById('eventId').value='';
-  document.getElementById('btnCancelEdit').classList.add('hidden');
-  document.getElementById('evDelay').value=2;
-  document.getElementById('evDuracion').value=9;
-  loadEvents();
-  if(selectedEventId) selectEvent(selectedEventId);
-});
-
-document.getElementById('btnCancelEdit').addEventListener('click', ()=>{
-  document.getElementById('eventId').value='';
-  document.getElementById('eventForm').reset();
-  document.getElementById('evDelay').value=2;
-  document.getElementById('evDuracion').value=9;
-  document.getElementById('btnCancelEdit').classList.add('hidden');
-});
-
-document.getElementById('btnReloadEvents').addEventListener('click', loadEvents);
-
-// SELECCIONAR EVENTO
-window.selectEvent = async function(id){
+async function selectEvent(id){
   selectedEventId=id;
   const {data: ev} = await supabaseClient.from('events').select('*').eq('id',id).single();
   document.getElementById('selectedEventName').textContent=ev.nombre;
-  document.getElementById('selectedEventId').textContent=ev.id;
   document.getElementById('detailSection').classList.remove('hidden');
-  loadCategories();
-  loadProjects();
-  loadVoteControls();
-  loadRegs();
-  document.getElementById('detailSection').scrollIntoView({behavior:'smooth'});
-};
-
-async function loadCategories(){
-  const {data, error} = await supabaseClient.from('categories').select('*').eq('event_id', selectedEventId).order('orden');
-  if(error){ console.error(error); return; }
-  const list=document.getElementById('catList'); list.innerHTML='';
-  const sel=document.getElementById('projCat'); sel.innerHTML='<option value="">Selecciona categoría</option>';
-  data.forEach(c=>{
-    list.innerHTML+=`<div class="flex justify-between items-center p-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm"><span><b>${c.key}</b> - ${c.label} ${c.votacion_abierta?'<span class="text-[10px] bg-emerald-400 text-black px-2 py-0.5 rounded-full ml-2">ABIERTA</span>':''}</span><button onclick="deleteCat('${c.id}')" class="text-xs bg-red-500/10 text-red-300 px-2 py-1 rounded-full">x</button></div>`;
-    sel.innerHTML+=`<option value="${c.id}">${c.label} (${c.key})</option>`;
-  });
-  if(data.length===0) list.innerHTML='<p class="text-xs text-white/40">No hay categorías. Crea: inicial, primaria, secundaria, etc.</p>';
+  loadCategories(); loadProjects(); loadVoteControls(); loadRegs(); loadQuickStats(); loadResultsByCategory();
 }
-
+async function loadCategories(){
+  const {data} = await supabaseClient.from('categories').select('*').eq('event_id', selectedEventId).order('orden');
+  const list=document.getElementById('catList'); list.innerHTML=''; const sel=document.getElementById('projCat'); sel.innerHTML='';
+  data.forEach(c=>{
+    list.innerHTML+=`<div class="flex justify-between p-2 rounded-lg bg-white/[0.04] border border-white/10"><span><b>${c.label}</b> <span class="text-xs text-white/40">(${c.key})</span> ${c.votacion_abierta?'<span class="bg-emerald-400 text-black text-[10px] px-1.5 py-0.5 rounded-full">ABIERTA</span>':'<span class="bg-white/10 text-[10px] px-1.5 py-0.5 rounded-full">CERRADA</span>'}</span><button onclick="deleteCat('${c.id}')" class="text-xs text-red-300">x</button></div>`;
+    sel.innerHTML+=`<option value="${c.id}">${c.label}</option>`;
+  });
+}
 async function loadProjects(){
   const {data} = await supabaseClient.from('projects').select('*, categories(label)').eq('event_id', selectedEventId).order('orden');
   const list=document.getElementById('projList'); list.innerHTML='';
-  if(!data || data.length===0){ list.innerHTML='<p class="text-xs text-white/40">No hay proyectos</p>'; return; }
   data.forEach(p=>{
-    list.innerHTML+=`<div class="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-sm"><div class="flex justify-between"><b>${p.title}</b><button onclick="deleteProj('${p.id}')" class="text-[10px] bg-red-500/10 text-red-300 px-2 py-0.5 rounded-full">Borrar</button></div><div class="text-xs text-white/60 mt-1">${p.categories?.label||''} | ${p.team||''}</div></div>`;
+    list.innerHTML+=`<div class="p-2 rounded-lg bg-white/[0.04] border border-white/10 text-sm flex gap-2"><div class="flex-1"><b>${p.title}</b> - <span class="text-violet-300">${p.categories?.label||''}</span><br><span class="text-white/50 text-xs">${p.team||''}</span></div><button onclick="deleteProject('${p.id}')" class="text-xs text-red-300">x</button></div>`;
   });
 }
-
 async function loadVoteControls(){
-  const {data} = await supabaseClient.from('categories').select('*').eq('event_id', selectedEventId);
+  const {data} = await supabaseClient.from('categories').select('*').eq('event_id', selectedEventId).order('orden');
   const cont=document.getElementById('voteControls'); cont.innerHTML='';
-  if(!data || data.length===0){ cont.innerHTML='<p class="text-xs text-white/40">Crea categorías primero</p>'; return; }
   data.forEach(c=>{
     const row=document.createElement('div'); row.className='flex justify-between items-center p-3 rounded-xl bg-white/[0.04] border border-white/10';
-    row.innerHTML=`<span class="text-sm">${c.label} - <span class="${c.votacion_abierta?'text-emerald-300':'text-white/40'}">${c.votacion_abierta?'ABIERTA':'CERRADA'}</span></span><button class="text-xs px-4 py-2 rounded-full font-bold ${c.votacion_abierta?'bg-white/10 text-white':'bg-lime-300 text-black'}" onclick="toggleVote('${c.id}', ${!c.votacion_abierta})">${c.votacion_abierta?'Cerrar':'Abrir'} votación</button>`;
+    row.innerHTML=`<span><b>${c.label}</b> - <span class="text-xs ${c.votacion_abierta?'text-emerald-300':'text-white/40'}">${c.votacion_abierta?'ABIERTA':'CERRADA'}</span></span><button class="px-4 py-2 rounded-lg font-bold text-xs ${c.votacion_abierta?'bg-white/10 text-white':'bg-lime-300 text-black'}" onclick="toggleVote('${c.id}', ${!c.votacion_abierta})">${c.votacion_abierta?'Cerrar':'Abrir'} votación</button>`;
     cont.appendChild(row);
   });
 }
-
 async function loadRegs(){
-  const {data: regs} = await supabaseClient.from('registrations').select('*').eq('event_id', selectedEventId).order('hora_registro',{ascending:false}).limit(200);
-  const {data: votes} = await supabaseClient.from('votes').select('*, projects(title)').eq('event_id', selectedEventId).limit(500);
-  document.getElementById('regCount').textContent = regs?.length||0;
+  const {data} = await supabaseClient.from('registrations').select('*').eq('event_id', selectedEventId).order('hora_registro',{ascending:false}).limit(100);
   const list=document.getElementById('regList'); list.innerHTML='';
-  if(!regs || regs.length===0){ list.innerHTML='<p class="text-xs text-white/40">Sin registros aún</p>'; return; }
-  regs.forEach(r=>{
-    const v = votes?.filter(v=>v.registration_id===r.id) || [];
-    list.innerHTML+=`<div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex justify-between gap-2"><div><b class="text-white">${r.nombres} ${r.apellidos}</b> <span class="text-white/40 text-xs">- ${r.email} - ${r.estado}</span><div class="text-[11px] text-white/40">Est: ${r.nombre_estudiante||''} | Votos: ${v.length} | ID: ${r.id.slice(0,8)}</div></div><div class="text-[10px] font-mono text-white/30">${new Date(r.hora_registro).toLocaleTimeString()}</div></div>`;
+  data.forEach(r=>{
+    list.innerHTML+=`<div class="p-2 rounded bg-white/[0.03] flex justify-between text-xs"><span>${r.nombres} ${r.apellidos} - ${r.email} - <b class="${r.estado==='INGRESADO'?'text-emerald-300':'text-amber-300'}">${r.estado}</b></span><span class="text-white/40 font-mono">${r.id.slice(0,8)}</span></div>`;
   });
-  // Estadísticas votos
-  const stats=document.getElementById('voteStats');
-  const grouped={};
-  votes?.forEach(v=>{ const key=v.category_id; if(!grouped[key]) grouped[key]=[]; grouped[key].push(v); });
-  let html='<h4 class="font-bold text-sm mt-4">Resultados por categoría</h4>';
-  for(const catId in grouped){
-    const catVotes=grouped[catId];
-    const counts={};
-    catVotes.forEach(v=>{ counts[v.project_id]=(counts[v.project_id]||0)+1; });
-    html+=`<div class="mt-3 p-3 rounded-xl bg-white/[0.04] border border-white/10"><p class="text-xs font-bold">${catId.slice(0,8)} - ${catVotes.length} votos</p>`;
-    for(const projId in counts){
-      const proj = catVotes.find(v=>v.project_id===projId)?.projects?.title || projId.slice(0,8);
-      html+=`<div class="flex justify-between text-xs mt-1"><span>${proj}</span><span class="font-bold">${counts[projId]}</span></div>`;
-    }
-    html+='</div>';
-  }
-  stats.innerHTML=html;
 }
-
-// ACCIONES
-document.getElementById('catForm').addEventListener('submit', async e=>{
+async function loadQuickStats(){
+  const {data: regs} = await supabaseClient.from('registrations').select('estado').eq('event_id', selectedEventId);
+  const {data: votes} = await supabaseClient.from('votes').select('id').eq('event_id', selectedEventId);
+  const total = regs?.length||0;
+  const ingresados = regs?.filter(r=>r.estado==='INGRESADO').length||0;
+  const votos = votes?.length||0;
+  document.getElementById('quickStats').innerHTML=`
+    <p>📝 Registrados: <b class="text-white">${total}</b></p>
+    <p>✅ Ingresados: <b class="text-emerald-300">${ingresados}</b> (${total?Math.round(ingresados/total*100):0}%)</p>
+    <p>🗳️ Votos emitidos: <b class="text-violet-300">${votos}</b></p>
+    <p>📊 Promedio votos por ingresado: <b>${ingresados? (votos/ingresados).toFixed(1):0}</b></p>
+  `;
+}
+// NUEVA FUNCIÓN: Resultados por categoría con título y ranking
+async function loadResultsByCategory(){
+  const container=document.getElementById('resultsByCategory');
+  container.innerHTML='<p class="text-white/40 text-sm">Cargando resultados...</p>';
+  
+  try{
+    const {data: cats} = await supabaseClient.from('categories').select('*').eq('event_id', selectedEventId).order('orden');
+    const {data: projs} = await supabaseClient.from('projects').select('*').eq('event_id', selectedEventId);
+    const {data: votes} = await supabaseClient.from('votes').select('project_id, category_id').eq('event_id', selectedEventId);
+    
+    if(!cats || cats.length===0){
+      container.innerHTML='<p class="text-white/40 text-sm">No hay categorías. Crea categorías en la sección de arriba.</p>';
+      return;
+    }
+    
+    // Agrupar votos por proyecto
+    const votesByProject = {};
+    votes?.forEach(v=>{
+      votesByProject[v.project_id] = (votesByProject[v.project_id]||0)+1;
+    });
+    
+    container.innerHTML='';
+    cats.forEach(cat=>{
+      const projectsInCat = projs.filter(p=>p.category_id===cat.id);
+      const results = projectsInCat.map(p=>({
+        ...p,
+        votes: votesByProject[p.id]||0
+      })).sort((a,b)=>b.votes - a.votes);
+      
+      const totalVotesInCat = results.reduce((sum,p)=>sum+p.votes,0);
+      
+      const section=document.createElement('div');
+      section.className='bg-white/[0.04] border border-white/10 rounded-2xl p-5';
+      
+      // Título de categoría destacado
+      let html = `
+        <div class="flex justify-between items-start">
+          <div>
+            <h4 class="font-black text-lg text-amber-300">📚 ${cat.label}</h4>
+            <p class="text-xs text-white/40 mt-1">Key: ${cat.key} | ${cat.votacion_abierta?'<span class="text-emerald-300">Votación ABIERTA</span>':'<span class="text-white/30">CERRADA</span>'} | ${totalVotesInCat} votos totales</p>
+          </div>
+          <span class="text-[10px] bg-white/10 px-2 py-1 rounded-full">${results.length} proyectos</span>
+        </div>
+        <div class="mt-4 grid gap-2">
+      `;
+      
+      if(results.length===0){
+        html+=`<p class="text-xs text-white/30">No hay proyectos en esta categoría.</p>`;
+      } else {
+        results.forEach((proj, idx)=>{
+          const place = idx+1;
+          let placeBadge='', placeStyle='', icon='';
+          if(place===1){
+            placeBadge='🥇 1er LUGAR';
+            placeStyle='border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/10';
+            icon='👑';
+          } else if(place===2){
+            placeBadge='🥈 2do LUGAR';
+            placeStyle='border-slate-300/30 bg-slate-500/10';
+            icon='⭐';
+          } else if(place===3){
+            placeBadge='🥉 3er LUGAR';
+            placeStyle='border-orange-400/30 bg-orange-500/10';
+            icon='✨';
+          } else {
+            placeBadge=`${place}° puesto`;
+            placeStyle='border-white/5 bg-white/[0.02]';
+            icon='';
+          }
+          
+          const percent = totalVotesInCat ? Math.round(proj.votes/totalVotesInCat*100) : 0;
+          
+          html+=`
+            <div class="flex gap-3 p-3 rounded-xl border ${placeStyle}">
+              <div class="text-center min-w-[70px]">
+                <div class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10">${placeBadge}</div>
+                <div class="mt-1 text-2xl">${icon}</div>
+                <div class="mt-1 text-xs font-mono font-bold">${proj.votes} votos</div>
+                <div class="text-[10px] text-white/40">${percent}%</div>
+              </div>
+              <div class="flex-1">
+                <p class="font-bold text-sm">${proj.title}</p>
+                <p class="text-xs text-white/50">${proj.team||'Sin equipo'}</p>
+                ${proj.photo_url?`<img src="${proj.photo_url}" class="mt-2 w-full max-w-[200px] h-[80px] object-cover rounded-lg">`:''}
+                <div class="mt-2 w-full bg-white/10 rounded-full h-1.5"><div class="bg-amber-400 h-1.5 rounded-full" style="width:${percent}%"></div></div>
+              </div>
+            </div>
+          `;
+        });
+      }
+      
+      html+=`</div>`;
+      section.innerHTML=html;
+      container.appendChild(section);
+    });
+    
+  }catch(err){
+    container.innerHTML=`<p class="text-red-300 text-sm">Error cargando resultados: ${err.message}</p>`;
+  }
+}
+function exportCSV(){
+  // Simple export
+  alert('Exportar: implementa descarga CSV desde resultados.html - usa window.open con data:');
+}
+document.getElementById('eventForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  if(!selectedEventId){ alert('Selecciona evento primero'); return; }
-  const key=document.getElementById('catKey').value.trim().toLowerCase();
-  const label=document.getElementById('catLabel').value.trim();
-  const {error} = await supabaseClient.from('categories').insert({event_id:selectedEventId, key, label, votacion_abierta:false});
-  if(error) alert(error.message); else { e.target.reset(); loadCategories(); loadVoteControls(); }
+  const id=document.getElementById('eventId').value;
+  const payload={nombre: document.getElementById('evNombre').value, descripcion: document.getElementById('evDesc').value, fecha: document.getElementById('evFecha').value||null, mensaje_bienvenida: document.getElementById('evMensaje').value, welcome_delay_seconds: parseInt(document.getElementById('evDelay').value)||0, welcome_duration_seconds: parseInt(document.getElementById('evDuracion').value)||9, activo: document.getElementById('evActivo').checked};
+  if(payload.activo){ await supabaseClient.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000'); }
+  if(id){ await supabaseClient.from('events').update(payload).eq('id',id); } else { await supabaseClient.from('events').insert(payload); }
+  document.getElementById('eventForm').reset(); document.getElementById('eventId').value=''; loadEvents();
 });
-
+document.getElementById('catForm').addEventListener('submit', async e=>{ e.preventDefault(); await supabaseClient.from('categories').insert({event_id:selectedEventId, key:document.getElementById('catKey').value, label:document.getElementById('catLabel').value}); e.target.reset(); loadCategories(); loadVoteControls(); loadResultsByCategory(); });
 document.getElementById('projForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  if(!selectedEventId){ alert('Selecciona evento primero'); return; }
-  const catId=document.getElementById('projCat').value;
-  if(!catId){ alert('Selecciona categoría'); return; }
-  const payload={
+  await supabaseClient.from('projects').insert({
     event_id:selectedEventId,
-    category_id:catId,
-    title: document.getElementById('projTitle').value.trim(),
-    team: document.getElementById('projTeam').value.trim()||null,
-    photo_url: document.getElementById('projPhoto').value.trim()||null
-  };
-  const {error} = await supabaseClient.from('projects').insert(payload);
-  if(error) alert(error.message); else { e.target.reset(); loadProjects(); }
+    category_id:document.getElementById('projCat').value,
+    title:document.getElementById('projTitle').value,
+    team:document.getElementById('projTeam').value,
+    photo_url:document.getElementById('projPhoto').value,
+    description:document.getElementById('projDesc').value
+  });
+  e.target.reset(); loadProjects(); loadResultsByCategory();
 });
-
-window.toggleVote=async(id, open)=>{
-  const {error}=await supabaseClient.from('categories').update({votacion_abierta:open}).eq('id',id);
-  if(error) alert(error.message); else loadVoteControls(), loadCategories();
-};
-window.deleteCat=async(id)=>{
-  if(!confirm('¿Borrar categoría? Se borrarán sus proyectos y votos.')) return;
-  await supabaseClient.from('projects').delete().eq('category_id', id);
-  await supabaseClient.from('votes').delete().eq('category_id', id);
-  const {error}=await supabaseClient.from('categories').delete().eq('id',id);
-  if(error) alert(error.message); else loadCategories(), loadProjects(), loadVoteControls();
-};
-window.deleteProj=async(id)=>{
-  if(!confirm('¿Borrar proyecto?')) return;
-  await supabaseClient.from('votes').delete().eq('project_id', id);
-  const {error}=await supabaseClient.from('projects').delete().eq('id',id);
-  if(error) alert(error.message); else loadProjects();
-};
-
-document.getElementById('btnReloadRegs').addEventListener('click', loadRegs);
-document.getElementById('btnExportRegs').addEventListener('click', async()=>{
-  const {data} = await supabaseClient.from('registrations').select('*').eq('event_id', selectedEventId);
-  if(!data || data.length===0){ alert('Sin datos'); return; }
-  const header=Object.keys(data[0]).join(',');
-  const rows=data.map(r=>Object.values(r).map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
-  const csv=header+'\n'+rows;
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=`registros-${selectedEventId.slice(0,8)}.csv`; a.click();
-});
-
-window.addEventListener('load', ()=>{
-  supabaseClient=initClient();
-  if(supabaseClient) checkSession();
-});
+window.toggleVote=async(id, open)=>{ await supabaseClient.from('categories').update({votacion_abierta:open}).eq('id',id); loadVoteControls(); };
+window.deleteCat=async(id)=>{ if(confirm('Borrar categoria y sus proyectos?')){ await supabaseClient.from('categories').delete().eq('id',id); loadCategories(); loadVoteControls(); loadResultsByCategory(); } };
+window.deleteProject=async(id)=>{ if(confirm('Borrar proyecto?')){ await supabaseClient.from('projects').delete().eq('id',id); loadProjects(); loadResultsByCategory(); } };
+window.selectEvent=selectEvent; window.editEvent=editEvent;
+document.getElementById('btnRefreshResults').addEventListener('click', loadResultsByCategory);
+document.getElementById('btnExportResults').addEventListener('click', ()=>{ window.open('resultados.html?event='+selectedEventId,'_blank'); });
+window.addEventListener('load', ()=>{ initClient(); loadEvents(); });
 </script>
 </body>
 </html>
