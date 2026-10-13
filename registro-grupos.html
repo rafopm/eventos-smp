@@ -6,35 +6,14 @@
 <title>Registro Grupos - Feria San Martín</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        cream: '#fffeea',
-        cream2: '#fff9c5',
-        yellowLight: '#fff485',
-        yellow: '#ffe846',
-        amberBright: '#ffd81b',
-        amber: '#ffba08',
-        orange: '#e28d00',
-        orangeBurnt: '#bb6302',
-        brownOrange: '#984c08',
-        brownDark: '#7c3e0b',
-        brownDeep: '#482000',
-        pink: '#fe1954',
-        cyan: '#04bdcf',
-      }
-    }
-  }
-}
+tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c5', yellowLight:'#fff485', yellow:'#ffe846', amberBright:'#ffd81b', amber:'#ffba08', orange:'#e28d00', orangeBurnt:'#bb6302', brownOrange:'#984c08', brownDark:'#7c3e0b', brownDeep:'#482000', pink:'#fe1954', cyan:'#04bdcf' } } } }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=11"></script>
-<link rel="stylesheet" href="styles.css?v=11">
+<script src="config.js?v=12"></script>
+<link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body class="min-h-screen bg-cream text-brownDeep p-4 md:p-8">
 <main class="w-full max-w-3xl mx-auto">
-  <!-- Header -->
   <div class="text-center mb-8">
     <div class="inline-flex items-center gap-2 badge badge-brown mb-4">🎭 Registro de grupos</div>
     <h1 class="font-display font-black text-[clamp(2rem,5vw,3.5rem)] leading-[0.9] tracking-tight">Inscribe tu presentación</h1>
@@ -42,7 +21,6 @@ tailwind.config = {
   </div>
   <section class="card p-6 md:p-8">
     <form id="groupForm" class="grid gap-6">
-      <!-- EVENTO SELECTOR - NUEVO REQUERIDO -->
       <div class="bg-cream2 border border-brownDeep/5 rounded-[20px] p-5">
         <label class="text-xs font-black tracking-widest opacity-60">EVENTO DONDE PARTICIPAS *</label>
         <select id="eventId" required class="input mt-2 font-bold">
@@ -55,14 +33,8 @@ tailwind.config = {
         </div>
       </div>
       <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-xs font-bold opacity-60">Categoría *</label>
-          <select id="categoryId" required class="input mt-1">
-            <option value="">Primero elige evento...</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs font-bold opacity-60">Tipo de presentación *</label>
+        <div><label class="text-xs font-bold opacity-60">Categoría *</label><select id="categoryId" required class="input mt-1"><option value="">Primero elige evento...</option></select></div>
+        <div><label class="text-xs font-bold opacity-60">Tipo de presentación *</label>
           <select id="tipoPresentacion" required class="input mt-1">
             <option value="">Selecciona...</option>
             <option value="PROYECTO">🔬 Proyecto / Ciencia</option>
@@ -78,56 +50,28 @@ tailwind.config = {
       <div class="bg-yellow/30 border border-amber/20 rounded-[20px] p-5">
         <label class="text-xs font-black text-brownDeep">Nombre de la presentación *</label>
         <input id="title" required placeholder="Ej: Marinera 'Orgullo' / Obra: Romeo / Proyecto: Robot" class="input mt-2 border-amber/30">
-        <p class="text-[11px] opacity-60 mt-2">💡 Baile: nombre de coreografía • Teatro: nombre obra • Proyecto: título atractivo</p>
       </div>
       <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-xs font-bold opacity-60">Nombre del grupo / Elenco <span class="opacity-40">(opcional)</span></label>
-          <input id="nombreGrupo" placeholder="Ej: Elenco Danza 4to B" class="input mt-1">
-        </div>
-        <div>
-          <label class="text-xs font-bold opacity-60">Grado / Taller</label>
-          <input id="grado" placeholder="Ej: 4to B, Taller Danza" class="input mt-1">
-        </div>
+        <div><label class="text-xs font-bold opacity-60">Nombre del grupo / Elenco <span class="opacity-40">(opcional)</span></label><input id="nombreGrupo" placeholder="Ej: Elenco Danza 4to B" class="input mt-1"></div>
+        <div><label class="text-xs font-bold opacity-60">Grado / Taller</label><input id="grado" placeholder="Ej: 4to B" class="input mt-1"></div>
       </div>
-      <div>
-        <label class="text-xs font-bold opacity-60">Integrantes / Elenco *</label>
-        <textarea id="team" required placeholder="Ana Pérez, Luis García..." class="input mt-1" rows="2"></textarea>
-      </div>
+      <div><label class="text-xs font-bold opacity-60">Integrantes / Elenco *</label><textarea id="team" required placeholder="Ana Pérez, Luis García..." class="input mt-1" rows="2"></textarea></div>
       <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-xs font-bold opacity-60">Duración estimada</label>
-          <input id="duracion" placeholder="5 min, 10 min" class="input mt-1">
-        </div>
-        <div>
-          <label class="text-xs font-bold opacity-60">Tutor / Docente</label>
-          <input id="tutorName" placeholder="Nombre docente" class="input mt-1">
-        </div>
+        <div><label class="text-xs font-bold opacity-60">Duración estimada</label><input id="duracion" placeholder="5 min" class="input mt-1"></div>
+        <div><label class="text-xs font-bold opacity-60">Tutor / Docente</label><input id="tutorName" placeholder="Nombre docente" class="input mt-1"></div>
       </div>
-      <div>
-        <label class="text-xs font-bold opacity-60">Descripción *</label>
-        <textarea id="description" required placeholder="¿De qué trata? Vestuario, mensaje, materiales..." class="input mt-1" rows="3"></textarea>
-      </div>
+      <div><label class="text-xs font-bold opacity-60">Descripción *</label><textarea id="description" required placeholder="¿De qué trata? Vestuario, mensaje, materiales..." class="input mt-1" rows="3"></textarea></div>
       <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="text-xs font-bold opacity-60">Email responsable *</label>
-          <input id="contactEmail" type="email" required placeholder="profesor@..." class="input mt-1">
-        </div>
-        <div>
-          <label class="text-xs font-bold opacity-60">WhatsApp</label>
-          <input id="contactPhone" placeholder="999 999 999" class="input mt-1">
-        </div>
+        <div><label class="text-xs font-bold opacity-60">Email responsable *</label><input id="contactEmail" type="email" required placeholder="profesor@..." class="input mt-1"></div>
+        <div><label class="text-xs font-bold opacity-60">WhatsApp</label><input id="contactPhone" placeholder="999 999 999" class="input mt-1"></div>
       </div>
       <div class="card-cream rounded-[20px] p-5">
         <label class="text-xs font-black tracking-widest">📸 FOTO (sube a Drive)</label>
         <input type="file" id="photoFile" accept="image/*" class="mt-3 w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-brownDeep file:text-white file:font-bold">
-        <div id="photoPreview" class="hidden mt-4">
-          <img id="previewImg" class="w-full max-w-[320px] h-[190px] object-cover rounded-[16px] border border-brownDeep/10">
-          <p id="uploadStatus" class="text-[11px] mt-2 font-mono"></p>
-        </div>
+        <div id="photoPreview" class="hidden mt-4"><img id="previewImg" class="w-full max-w-[320px] h-[190px] object-cover rounded-[16px] border border-brownDeep/10"><p id="uploadStatus" class="text-[11px] mt-2 font-mono"></p></div>
         <input id="photoUrlManual" placeholder="O pega URL manual" class="input mt-3 text-xs">
       </div>
-      <label class="flex gap-2 text-xs items-start"><input type="checkbox" required class="mt-1"> <span class="opacity-70">Acepto bases y que mi presentación quede <b>pendiente</b> hasta aprobación del admin.</span></label>
+      <label class="flex gap-2 text-xs items-start"><input type="checkbox" required class="mt-1"> <span class="opacity-70">Acepto que quede <b>pendiente</b> hasta aprobación.</span></label>
       <button id="btnSubmit" class="btn-primary w-full text-base py-4">📝 Registrar grupo</button>
       <p id="msg" class="hidden text-xs p-3 rounded-[12px]"></p>
     </form>
@@ -137,10 +81,7 @@ tailwind.config = {
       <p class="opacity-60 text-sm mt-2">Tu presentación está pendiente de aprobación.</p>
       <p id="successId" class="mt-4 font-mono text-xs badge badge-cream"></p>
       <img id="successPhoto" class="hidden mt-6 w-full max-w-[340px] h-[220px] object-cover rounded-[20px] mx-auto border border-brownDeep/10">
-      <div class="mt-8 grid gap-3">
-        <a href="registro-grupos.html" class="btn-primary">Registrar otro</a>
-        <a href="index.html" class="btn-ghost text-center">Ir a registro visitantes</a>
-      </div>
+      <div class="mt-8 grid gap-3"><a href="registro-grupos.html" class="btn-primary">Registrar otro</a><a href="index.html" class="btn-ghost text-center">Ir a registro visitantes</a></div>
     </div>
   </section>
 </main>
@@ -156,47 +97,32 @@ async function loadEvents(){
     sel.innerHTML='<option value="">Selecciona evento...</option>';
     let activeFound=null;
     data.forEach(ev=>{
-      const opt=document.createElement('option');
-      opt.value=ev.id;
+      const opt=document.createElement('option'); opt.value=ev.id;
       opt.textContent=(ev.activo?'● ':'') + ev.nombre + (ev.fecha? ' - '+new Date(ev.fecha).toLocaleDateString():'');
       if(ev.activo) opt.selected=true, activeFound=ev;
       sel.appendChild(opt);
     });
-    if(activeFound){
-      await onEventChange(activeFound.id);
-    } else if(data.length>0){
-      await onEventChange(data[0].id);
-      sel.value=data[0].id;
-    }
-  }catch(err){
-    sel.innerHTML='<option>Error cargando eventos</option>';
-  }
+    if(activeFound){ await onEventChange(activeFound.id); }
+    else if(data.length>0){ await onEventChange(data[0].id); sel.value=data[0].id; }
+  }catch(err){ sel.innerHTML='<option>Error cargando eventos</option>'; console.error(err); }
 }
 async function onEventChange(eventId){
-  const ev = events.find(e=>e.id===eventId);
-  if(!ev) return;
+  const ev = events.find(e=>e.id===eventId); if(!ev) return;
   activeEvent=ev;
-  document.getElementById('eventInfo').textContent=ev.descripcion||'';
-  document.getElementById('eventInfo').classList.remove('hidden');
-  document.getElementById('eventName').textContent=ev.nombre;
-  document.getElementById('eventDate').textContent=ev.fecha? new Date(ev.fecha).toLocaleDateString():'';
+  document.getElementById('eventInfo').textContent=ev.descripcion||''; document.getElementById('eventInfo').classList.remove('hidden');
+  document.getElementById('eventName').textContent=ev.nombre; document.getElementById('eventDate').textContent=ev.fecha? new Date(ev.fecha).toLocaleDateString():'';
   document.getElementById('eventImagePreview').classList.remove('hidden');
-  const initials = ev.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  document.getElementById('eventInitials').textContent=initials;
-  const imgUrl = ev.imagen_url || ev.image_url || ev.photo_url;
-  const imgEl=document.getElementById('eventImg');
+  document.getElementById('eventInitials').textContent=ev.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const imgUrl = ev.imagen_url || ev.image_url || ev.photo_url; const imgEl=document.getElementById('eventImg');
   if(imgUrl){ imgEl.src=imgUrl; imgEl.classList.remove('hidden'); document.getElementById('eventInitials').classList.add('hidden'); }
   else { imgEl.classList.add('hidden'); document.getElementById('eventInitials').classList.remove('hidden'); }
   await loadCategories(eventId);
 }
 async function loadCategories(eventId){
-  const sel=document.getElementById('categoryId');
-  sel.innerHTML='<option>Cargando categorías...</option>';
+  const sel=document.getElementById('categoryId'); sel.innerHTML='<option>Cargando categorías...</option>';
   const {data} = await supabaseClient.from('categories').select('*').eq('event_id', eventId).order('orden');
   sel.innerHTML='<option value="">Selecciona categoría...</option>';
-  data.forEach(c=>{
-    sel.innerHTML+=`<option value="${c.id}">${c.label} (${c.key})</option>`;
-  });
+  (data||[]).forEach(c=>{ sel.innerHTML+=`<option value="${c.id}">${c.label} (${c.key})</option>`; });
 }
 document.getElementById('eventId').addEventListener('change', e=>{ if(e.target.value) onEventChange(e.target.value); });
 document.getElementById('photoFile').addEventListener('change', async e=>{
@@ -207,50 +133,115 @@ document.getElementById('photoFile').addEventListener('change', async e=>{
   try{
     const base64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
     const driveUrl=window.APPS_SCRIPT_DRIVE_URL || window.APPS_SCRIPT_URL;
-    if(!driveUrl || driveUrl.includes('TU_ID')) throw new Error('Configura APPS_SCRIPT_URL en config.js');
     const resp=await fetch(driveUrl,{method:'POST', body: JSON.stringify({fileName:file.name, mimeType:file.type, base64Data:base64, folderId: window.DRIVE_FOLDER_ID||""})});
     const result=await resp.json();
-    if(result.success || result.ok){
-      uploadedPhotoUrl=result.url; status.textContent='✅ '+result.fileName; status.className='badge badge-green mt-2'; document.getElementById('photoUrlManual').value=result.url;
-    } else throw new Error(result.error);
+    if(result.success || result.ok || result.url){
+      uploadedPhotoUrl=result.url; status.textContent='✅ '+ (result.fileName||'Subido'); status.className='badge badge-green mt-2'; document.getElementById('photoUrlManual').value=result.url;
+    } else throw new Error(result.error||'Error upload');
   }catch(err){ status.textContent='❌ '+err.message; status.className='badge badge-pink mt-2'; }
 });
+// === FIX ROBUSTO PARA ERROR DE COLUMNA DESCRIPTION FALTANTE ===
 document.getElementById('groupForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const btn=document.getElementById('btnSubmit'), msg=document.getElementById('msg');
   btn.disabled=true; btn.textContent='Registrando...'; msg.classList.add('hidden');
   try{
     if(!activeEvent) throw new Error('Elige evento');
-    const payloadExt={
+    const titleVal = document.getElementById('title').value.trim();
+    const teamVal = document.getElementById('team').value.trim();
+    const descVal = document.getElementById('description').value.trim();
+    const nombreGrupoVal = document.getElementById('nombreGrupo').value.trim();
+    const tipoVal = document.getElementById('tipoPresentacion').value;
+    const gradoVal = document.getElementById('grado').value.trim();
+    const duracionVal = document.getElementById('duracion').value.trim();
+    const emailVal = document.getElementById('contactEmail').value.trim();
+    const phoneVal = document.getElementById('contactPhone').value.trim();
+    const tutorVal = document.getElementById('tutorName').value.trim();
+    const finalPhotoUrl = uploadedPhotoUrl || document.getElementById('photoUrlManual').value.trim() || null;
+    const categoryId = document.getElementById('categoryId').value;
+    if(!categoryId) throw new Error('Selecciona categoría');
+    // Payloads de menor a mayor compatibilidad
+    const payloadFull={
       event_id: activeEvent.id,
-      category_id: document.getElementById('categoryId').value,
-      title: document.getElementById('title').value.trim(),
-      team: document.getElementById('team').value.trim(),
-      description: document.getElementById('description').value.trim(),
-      photo_url: uploadedPhotoUrl || document.getElementById('photoUrlManual').value.trim() || null,
+      category_id: categoryId,
+      title: titleVal,
+      team: teamVal,
+      description: descVal,
+      photo_url: finalPhotoUrl,
       activo: false,
-      contact_email: document.getElementById('contactEmail').value.trim(),
-      contact_phone: document.getElementById('contactPhone').value.trim(),
-      tutor_name: document.getElementById('tutorName').value.trim(),
+      contact_email: emailVal,
+      contact_phone: phoneVal,
+      tutor_name: tutorVal,
       estado_registro: 'PENDIENTE',
-      nombre_grupo: document.getElementById('nombreGrupo').value.trim()||null,
-      tipo_presentacion: document.getElementById('tipoPresentacion').value,
-      grado_seccion: document.getElementById('grado').value.trim(),
-      duracion_estimada: document.getElementById('duracion').value.trim()
+      nombre_grupo: nombreGrupoVal||null,
+      tipo_presentacion: tipoVal,
+      grado_seccion: gradoVal,
+      duracion_estimada: duracionVal
     };
-    let {data, error}=await supabaseClient.from('projects').insert(payloadExt).select().single();
-    if(error){
-      const fallback={event_id:payloadExt.event_id, category_id:payloadExt.category_id, title:payloadExt.title, team:(payloadExt.nombre_grupo? payloadExt.nombre_grupo+' | ':'')+payloadExt.team, description: payloadExt.description + "\nTipo:"+payloadExt.tipo_presentacion, photo_url:payloadExt.photo_url, activo:false};
-      const r2=await supabaseClient.from('projects').insert(fallback).select().single();
-      if(r2.error) throw r2.error;
-      data=r2.data;
+    const payloadWithDesc={
+      event_id: activeEvent.id,
+      category_id: categoryId,
+      title: titleVal,
+      team: teamVal,
+      description: descVal,
+      photo_url: finalPhotoUrl,
+      activo: false
+    };
+    const teamFallback = [
+      nombreGrupoVal ? `Grupo: ${nombreGrupoVal}` : null,
+      `Integrantes: ${teamVal}`,
+      tipoVal ? `Tipo: ${tipoVal}` : null,
+      gradoVal ? `Grado: ${gradoVal}` : null,
+      duracionVal ? `Duración: ${duracionVal}` : null,
+      descVal ? `Desc: ${descVal}` : null,
+      emailVal ? `Email: ${emailVal}` : null,
+      phoneVal ? `Tel: ${phoneVal}` : null,
+      tutorVal ? `Tutor: ${tutorVal}` : null
+    ].filter(Boolean).join(' | ').slice(0, 1000);
+    const payloadMinimal={
+      event_id: activeEvent.id,
+      category_id: categoryId,
+      title: titleVal,
+      team: teamFallback,
+      photo_url: finalPhotoUrl,
+      activo: false
+    };
+    let data=null, lastErr=null;
+    // Intento 1: full
+    console.log('Intento insert full', payloadFull);
+    let res = await supabaseClient.from('projects').insert(payloadFull).select().single();
+    if(!res.error){ data=res.data; }
+    else {
+      lastErr=res.error; console.warn('Full falló:', res.error.message);
+      // Intento 2: solo con description (si faltan columnas de grupos)
+      if(res.error.message.includes('contact_email') || res.error.message.includes('nombre_grupo') || res.error.message.includes('tipo_presentacion') || res.error.message.includes('grado_seccion')){
+        console.log('Reintentando con payloadWithDesc');
+        let res2 = await supabaseClient.from('projects').insert(payloadWithDesc).select().single();
+        if(!res2.error){ data=res2.data; }
+        else {
+          lastErr=res2.error; console.warn('WithDesc falló:', res2.error.message);
+          if(res2.error.message.includes('description')){
+            console.log('Reintentando minimal sin description');
+            let res3 = await supabaseClient.from('projects').insert(payloadMinimal).select().single();
+            if(!res3.error){ data=res3.data; } else { throw res3.error; }
+          } else { throw res2.error; }
+        }
+      } else if(res.error.message.includes('description')){
+        console.log('Reintentando minimal sin description');
+        let res3 = await supabaseClient.from('projects').insert(payloadMinimal).select().single();
+        if(!res3.error){ data=res3.data; } else { throw res3.error; }
+      } else { throw res.error; }
     }
     document.getElementById('groupForm').classList.add('hidden');
     document.getElementById('successSection').classList.remove('hidden');
     document.getElementById('successId').textContent=`${data.title} - PENDIENTE`;
-    if(payloadExt.photo_url){ const img=document.getElementById('successPhoto'); img.src=payloadExt.photo_url; img.classList.remove('hidden'); }
-  }catch(err){ msg.textContent='Error: '+err.message; msg.className='text-xs p-3 rounded-[12px] bg-pink/10 border border-pink/20 text-pink'; msg.classList.remove('hidden'); }
-  finally{ btn.disabled=false; btn.textContent='📝 Registrar grupo'; }
+    if(finalPhotoUrl){ const img=document.getElementById('successPhoto'); img.src=finalPhotoUrl; img.classList.remove('hidden'); }
+  }catch(err){
+    console.error(err);
+    msg.innerHTML=`❌ Error: ${err.message}<br><br><b>Solución:</b> Ve a Supabase > SQL Editor y ejecuta el archivo <code>sql-fix-descripcion.sql</code> que te dejé. Luego recarga la página.`;
+    msg.className='text-xs p-3 rounded-[12px] bg-pink/10 border border-pink/20 text-pink';
+    msg.classList.remove('hidden');
+  } finally { btn.disabled=false; btn.textContent='📝 Registrar grupo'; }
 });
 window.addEventListener('load', async()=>{ initClient(); await loadEvents(); });
 </script>

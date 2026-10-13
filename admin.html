@@ -29,8 +29,8 @@ tailwind.config = {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=11"></script>
-<link rel="stylesheet" href="styles.css?v=11">
+<script src="config.js?v=12"></script>
+<link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body class="min-h-screen bg-cream text-brownDeep">
 <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-brownDeep/5">
@@ -344,9 +344,24 @@ async function loadResultsByCategory(){
 document.getElementById('eventForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const id=document.getElementById('eventId').value;
-  const payload={nombre: document.getElementById('evNombre').value, descripcion: document.getElementById('evDesc').value, fecha: document.getElementById('evFecha').value||null, imagen_url: document.getElementById('evImagen').value||uploadedEventImageUrl||null, mensaje_bienvenida: document.getElementById('evMensaje').value, welcome_delay_seconds: parseInt(document.getElementById('evDelay').value)||0, welcome_duration_seconds: parseInt(document.getElementById('evDuracion').value)||8, activo: document.getElementById('evActivo').checked, bienvenida_activa: document.getElementById('evBienvenidaActiva').checked};
-  if(payload.activo){ await supabaseClient.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000'); }
-  if(id){ await supabaseClient.from('events').update(payload).eq('id',id); } else { await supabaseClient.from('events').insert(payload); }
+  const payloadFull={nombre: document.getElementById('evNombre').value, descripcion: document.getElementById('evDesc').value, fecha: document.getElementById('evFecha').value||null, imagen_url: document.getElementById('evImagen').value||uploadedEventImageUrl||null, image_url: document.getElementById('evImagen').value||uploadedEventImageUrl||null, mensaje_bienvenida: document.getElementById('evMensaje').value, welcome_delay_seconds: parseInt(document.getElementById('evDelay').value)||0, welcome_duration_seconds: parseInt(document.getElementById('evDuracion').value)||8, activo: document.getElementById('evActivo').checked, bienvenida_activa: document.getElementById('evBienvenidaActiva').checked};
+  const payloadMinimal={nombre: payloadFull.nombre, descripcion: payloadFull.descripcion, fecha: payloadFull.fecha, mensaje_bienvenida: payloadFull.mensaje_bienvenida, activo: payloadFull.activo};
+  if(payloadFull.activo){ await supabaseClient.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000'); }
+  let res;
+  if(id){ 
+    res = await supabaseClient.from('events').update(payloadFull).eq('id',id).select().single();
+    if(res.error && (res.error.message.includes('imagen_url') || res.error.message.includes('bienvenida_activa'))){
+      console.warn('Fallback evento minimal por columnas faltantes', res.error.message);
+      res = await supabaseClient.from('events').update(payloadMinimal).eq('id',id).select().single();
+    }
+  } else { 
+    res = await supabaseClient.from('events').insert(payloadFull).select().single();
+    if(res.error && (res.error.message.includes('imagen_url') || res.error.message.includes('bienvenida_activa'))){
+      console.warn('Fallback insert minimal', res.error.message);
+      res = await supabaseClient.from('events').insert(payloadMinimal).select().single();
+    }
+  }
+  if(res && res.error){ alert('Error evento: '+res.error.message + '\nEjecuta sql-fix-descripcion.sql para agregar imagen_url y bienvenida_activa'); return; }
   document.getElementById('eventForm').reset(); document.getElementById('eventId').value=''; document.getElementById('evImagePreview').classList.add('hidden'); uploadedEventImageUrl=null; loadEvents();
 });
 document.getElementById('evImageFile').addEventListener('change', async e=>{
@@ -365,7 +380,31 @@ document.getElementById('evImageFile').addEventListener('change', async e=>{
 document.getElementById('catForm').addEventListener('submit', async e=>{ e.preventDefault(); await supabaseClient.from('categories').insert({event_id:selectedEventId, key:document.getElementById('catKey').value, label:document.getElementById('catLabel').value}); e.target.reset(); loadCategories(); loadVoteControls(); loadResultsByCategory(); });
 document.getElementById('projForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  await supabaseClient.from('projects').insert({event_id:selectedEventId, category_id:document.getElementById('projCat').value, title:document.getElementById('projTitle').value, team:document.getElementById('projTeam').value, photo_url:document.getElementById('projPhoto').value||null, description:document.getElementById('projDesc').value||null, activo: document.getElementById('projActivo').checked, estado_registro: document.getElementById('projActivo').checked ? 'APROBADO' : 'PENDIENTE'});
+  const payloadFull = {
+    event_id:selectedEventId, 
+    category_id:document.getElementById('projCat').value, 
+    title:document.getElementById('projTitle').value, 
+    team:document.getElementById('projTeam').value, 
+    photo_url:document.getElementById('projPhoto').value||null, 
+    description:document.getElementById('projDesc').value||null, 
+    activo: document.getElementById('projActivo').checked, 
+    estado_registro: document.getElementById('projActivo').checked ? 'APROBADO' : 'PENDIENTE'
+  };
+  const payloadMinimal = {
+    event_id: payloadFull.event_id,
+    category_id: payloadFull.category_id,
+    title: payloadFull.title,
+    team: payloadFull.team,
+    photo_url: payloadFull.photo_url,
+    activo: payloadFull.activo
+  };
+  let res = await supabaseClient.from('projects').insert(payloadFull).select().single();
+  if(res.error && res.error.message.includes('description')){
+    console.warn('Fallback sin description para admin');
+    res = await supabaseClient.from('projects').insert(payloadMinimal).select().single();
+  }
+  if(res.error){ alert('Error: '+res.error.message + '
+Ejecuta sql-fix-descripcion.sql en Supabase'); return; }
   e.target.reset(); await loadProjectsAndGroups(); loadResultsByCategory(); loadQuickStats();
 });
 window.toggleVote=async(id, open)=>{ await supabaseClient.from('categories').update({votacion_abierta:open}).eq('id',id); loadVoteControls(); };
