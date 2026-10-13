@@ -10,7 +10,7 @@
 window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
 window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
 </script>
-<script src="config.js?v=8"></script>
+<script src="config.js?v=10"></script>
 </head>
 <body class="min-h-screen bg-[#10130c] text-white p-6">
 <main class="max-w-7xl mx-auto">
@@ -134,6 +134,7 @@ window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol98
 </div>
 </div>
 <input id="editTitle" required placeholder="Título" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<input id="editNombreGrupo" placeholder="Nombre del grupo / Elenco (opcional)">
 <input id="editTeam" placeholder="Equipo / integrantes" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
 <textarea id="editDesc" placeholder="Descripción" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3" rows="3"></textarea>
 <input id="editPhoto" placeholder="URL foto" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
@@ -240,9 +241,10 @@ function renderGroups(){
             <span class="text-[10px] px-2 py-0.5 rounded-full ${isPending?'bg-amber-400 text-black':'bg-emerald-400 text-black'}">${isPending?'PENDIENTE':'APROBADO'}</span>
             <span class="text-[10px] bg-white/10 px-2 py-0.5 rounded-full">${cat?cat.label:'Sin categoría'}</span>
           </div>
-          <p class="text-xs text-white/60 mt-1">Equipo: ${proj.team||'Sin equipo'} | Tutor: ${proj.tutor_name||'-'}</p>
+          <p class="text-xs text-white/60 mt-1">🏷️ Grupo: <b class="text-white">${proj.nombre_grupo||'—'}</b> | Tipo: <span class="text-violet-300">${proj.tipo_presentacion||'—'}</span> | Equipo: ${proj.team||'Sin equipo'}</p>
+          <p class="text-xs text-white/50 mt-1">Tutor: ${proj.tutor_name||'-'} | Grado: ${proj.grado_seccion||'-'} | Dur: ${proj.duracion_estimada||'-'}</p>
           <p class="text-[11px] text-white/40 mt-1 line-clamp-2">${proj.description||''}</p>
-          <p class="text-[11px] text-white/30 mt-1">📧 ${proj.contact_email||'sin email'} | 📞 ${proj.contact_phone||'-'} ${proj.photo_url?` | <a href="${proj.photo_url}" target="_blank" class="text-violet-300 underline">Foto</a>`:''}</p>
+          <p class="text-[11px] text-white/30 mt-1">📧 ${proj.contact_email||'sin email'} | 📞 ${proj.contact_phone||'-'} ${proj.photo_url?` | <a href="${proj.photo_url}" target="_blank" class="text-violet-300 underline">Foto Drive</a>`:''}</p>
           <p class="text-[10px] text-white/20 mt-1 font-mono">${proj.id.slice(0,8)} • ${new Date(proj.created_at||Date.now()).toLocaleString()}</p>
         </div>
         <div class="flex flex-col gap-1">
@@ -273,6 +275,7 @@ function openEditModal(id){
   document.getElementById('editId').value=proj.id;
   document.getElementById('editCat').value=proj.category_id||'';
   document.getElementById('editTitle').value=proj.title||'';
+  document.getElementById('editNombreGrupo').value=proj.nombre_grupo||'';
   document.getElementById('editTeam').value=proj.team||'';
   document.getElementById('editDesc').value=proj.description||'';
   document.getElementById('editPhoto').value=proj.photo_url||'';
@@ -303,6 +306,7 @@ document.getElementById('editForm').addEventListener('submit', async e=>{
     contact_email: document.getElementById('editContactEmail').value||null,
     contact_phone: document.getElementById('editContactPhone').value||null,
     tutor_name: document.getElementById('editTutor').value||null,
+    nombre_grupo: document.getElementById('editNombreGrupo').value||null,
     estado_registro: document.getElementById('editEstado').value
   };
   

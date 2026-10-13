@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Registro Grupos Concursantes - Feria San Martín</title>
+<title>Registro Grupos - Baile, Teatro, Proyecto</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script>
 window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
 window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
 </script>
-<script src="config.js?v=8"></script>
+<script src="config.js?v=10"></script>
 </head>
 <body class="min-h-screen bg-[#0a0f0d] text-white flex items-center justify-center p-4">
 <main class="w-full max-w-2xl">
 <div class="text-center mb-6">
 <h1 class="text-3xl font-black">Registro de Grupos Concursantes</h1>
-<p class="text-white/50 text-sm mt-2">Inscribe tu proyecto para la feria</p>
+<p class="text-white/50 text-sm mt-2">Proyecto, Baile, Teatro, Canto, Música, etc.</p>
 <div id="eventBadge" class="mt-3 inline-flex bg-lime-300 text-black px-3 py-1 rounded-full text-xs font-bold">Cargando evento...</div>
 </div>
 <section class="bg-white/[0.05] border border-white/10 rounded-[24px] p-6">
@@ -27,23 +27,51 @@ window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol98
 <select id="categoryId" required class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
 <option value="">Selecciona categoría...</option>
 </select>
+<p class="text-[10px] text-white/30 mt-1">Ej: Primaria, Secundaria, Danza, Teatro...</p>
 </div>
 <div>
-<label class="text-xs text-white/50">Grado / Sección (opcional)</label>
-<input id="grado" placeholder="Ej: 4to B" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<label class="text-xs text-white/50">Tipo de presentación *</label>
+<select id="tipoPresentacion" required class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<option value="">Selecciona...</option>
+<option value="PROYECTO">🔬 Proyecto / Ciencia</option>
+<option value="BAILE">💃 Baile / Danza</option>
+<option value="TEATRO">🎭 Teatro / Drama</option>
+<option value="CANTO">🎤 Canto / Música</option>
+<option value="MUSICA">🎸 Banda / Instrumental</option>
+<option value="ARTE">🎨 Arte / Pintura</option>
+<option value="OTRO">✨ Otro</option>
+</select>
+</div>
+</div>
+<!-- NOMBRE DE LA PRESENTACIÓN - CAMPO PRINCIPAL MEJORADO -->
+<div class="bg-white/[0.03] border border-white/10 rounded-xl p-3">
+<label class="text-xs font-bold text-amber-300">Nombre de la presentación / Proyecto *</label>
+<input id="title" required placeholder="Ej: Marinera Norteña 'Orgullo Trujillano' / Obra: Romeo y Julieta / Proyecto: Robot Reciclador" class="w-full mt-2 rounded-xl bg-white/[0.06] border border-amber-500/20 px-4 py-3 text-sm">
+<p class="text-[10px] text-white/40 mt-2">💡 Usa un nombre atractivo para el público: <br>• Si es <b>Baile</b>: nombre del baile o coreografía<br>• Si es <b>Teatro</b>: nombre de la obra<br>• Si es <b>Proyecto</b>: nombre del proyecto<br>• Si es <b>Canto</b>: nombre de la canción o show</p>
+</div>
+<!-- NOMBRE DEL GRUPO OPCIONAL - NUEVO -->
+<div>
+<label class="text-xs text-white/50">Nombre del Grupo / Elenco / Compañía <span class="text-white/30">(opcional)</span></label>
+<input id="nombreGrupo" placeholder="Ej: Elenco de Danza 4to B, Compañía Teatral San Martín, Grupo Los Innovadores (deja vacío si es individual)" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<p class="text-[10px] text-white/30 mt-1">Opcional - útil para presentaciones artísticas colectivas</p>
+</div>
+<div>
+<label class="text-xs text-white/50">Integrantes / Elenco *</label>
+<textarea id="team" required placeholder="Nombres de integrantes. Ej: Ana Pérez (Marinera), Luis García (Guitarra), María López (Voz) - Separa por coma" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm" rows="2"></textarea>
+</div>
+<div class="grid md:grid-cols-2 gap-3">
+<div>
+<label class="text-xs text-white/50">Grado / Sección / Curso</label>
+<input id="grado" placeholder="Ej: 4to B, Taller de Danza, 5to Sec" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+</div>
+<div>
+<label class="text-xs text-white/50">Duración estimada (si es artística)</label>
+<input id="duracion" placeholder="Ej: 5 min, 10 min" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
 </div>
 </div>
 <div>
-<label class="text-xs text-white/50">Nombre del Proyecto / Grupo *</label>
-<input id="title" required placeholder="Ej: Robot Reciclador 3000" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-</div>
-<div>
-<label class="text-xs text-white/50">Integrantes del grupo *</label>
-<textarea id="team" required placeholder="Nombres de integrantes separados por coma. Ej: Ana Pérez, Luis García, María López" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm" rows="2"></textarea>
-</div>
-<div>
-<label class="text-xs text-white/50">Descripción del proyecto *</label>
-<textarea id="description" required placeholder="Describe brevemente de qué trata, materiales, objetivo..." class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm" rows="3"></textarea>
+<label class="text-xs text-white/50">Descripción de la presentación *</label>
+<textarea id="description" required placeholder="Describe: de qué trata, vestuario, mensaje, materiales, objetivo, historia del baile/obra..." class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm" rows="3"></textarea>
 </div>
 <div class="grid md:grid-cols-2 gap-3">
 <div>
@@ -55,37 +83,46 @@ window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol98
 <input id="contactPhone" placeholder="999 999 999" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
 </div>
 </div>
-<div class="grid md:grid-cols-2 gap-3">
 <div>
 <label class="text-xs text-white/50">Tutor / Docente asesor</label>
 <input id="tutorName" placeholder="Nombre del docente" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
 </div>
-<div>
-<label class="text-xs text-white/50">Foto del proyecto (URL opcional)</label>
-<input id="photoUrl" placeholder="https://..." class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<!-- FOTO CON UPLOAD A DRIVE - NUEVO -->
+<div class="bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 rounded-xl p-4">
+<label class="text-xs font-bold text-violet-300">📸 Foto del grupo / presentación (sube a Drive)</label>
+<div class="mt-2 grid gap-3">
+<input type="file" id="photoFile" accept="image/*" class="w-full text-xs text-white/50 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-violet-500 file:text-white file:text-xs file:font-bold">
+<div id="photoPreview" class="hidden">
+<img id="previewImg" class="w-full max-w-[300px] h-[180px] object-cover rounded-xl border border-white/10">
+<p id="uploadStatus" class="text-[11px] mt-2 font-mono"></p>
+</div>
+<p class="text-[10px] text-white/40">La foto se subirá automáticamente a tu Google Drive (carpeta FeriaSanMartin-Fotos-Grupos) y se guardará la URL en Supabase. Máx 5MB. También puedes pegar URL manual abajo.</p>
+<input id="photoUrlManual" placeholder="O pega URL manual si ya tienes foto en Drive/Cloud (opcional)" class="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3 py-2 text-xs">
 </div>
 </div>
 <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
-<p class="text-[11px] text-amber-200">⚠️ Tu proyecto quedará en estado <b>PENDIENTE</b> hasta que el admin lo habilite. Podrás verlo en votación solo después de aprobación.</p>
+<p class="text-[11px] text-amber-200">⚠️ Tu presentación quedará <b>PENDIENTE</b> hasta que el admin la habilite. Revisa que el nombre sea atractivo para votación: "Marinera Norteña" suena mejor que "Baile 1".</p>
 </div>
-<label class="flex gap-2 text-xs text-white/60"><input type="checkbox" required> Acepto bases de la feria y que mis datos sean usados para la exhibición</label>
-<button id="btnSubmit" class="bg-lime-300 text-black font-extrabold py-3.5 rounded-xl text-sm">📝 Registrar Grupo Concursante</button>
+<label class="flex gap-2 text-xs text-white/60"><input type="checkbox" required> Acepto bases de la feria</label>
+<button id="btnSubmit" class="bg-lime-300 text-black font-extrabold py-3.5 rounded-xl text-sm">📝 Registrar Grupo / Presentación</button>
 <p id="msg" class="hidden text-xs p-3 rounded-xl"></p>
 </form>
 </section>
 <section id="successSection" class="hidden mt-6 bg-white text-black p-6 rounded-[24px] text-center">
-<p class="font-black text-lg">¡Grupo registrado!</p>
-<p class="text-xs text-black/60 mt-2">Tu proyecto está pendiente de aprobación por el admin. Te avisaremos por correo.</p>
+<p class="font-black text-lg">¡Registrado!</p>
+<p class="text-xs text-black/60 mt-2">Tu presentación está pendiente de aprobación.</p>
 <p id="successId" class="mt-4 font-mono text-xs font-bold"></p>
+<img id="successPhoto" class="hidden mt-4 w-full max-w-[320px] h-[200px] object-cover rounded-xl mx-auto">
 <div class="mt-5 grid gap-2">
-<a href="registro-grupos.html" class="w-full bg-black text-white font-bold py-3 rounded-xl text-sm text-center">Registrar otro grupo</a>
-<a href="index.html" class="w-full bg-black/5 text-black py-2.5 rounded-xl text-xs text-center">Ir a registro de visitantes</a>
+<a href="registro-grupos.html" class="w-full bg-black text-white font-bold py-3 rounded-xl text-sm text-center">Registrar otro</a>
+<a href="index.html" class="w-full bg-black/5 text-black py-2.5 rounded-xl text-xs text-center">Ir a registro visitantes</a>
 </div>
 </section>
 </main>
 <script>
 let supabaseClient=null;
 let activeEvent=null;
+let uploadedPhotoUrl=null;
 function initClient(){
   supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   return supabaseClient;
@@ -112,6 +149,71 @@ async function loadCategories(){
     sel.innerHTML+=`<option value="${c.id}">${c.label} (${c.key})</option>`;
   });
 }
+// --- UPLOAD FOTO A DRIVE VIA APPS SCRIPT UNIFICADO (mismo que email) ---
+document.getElementById('photoFile').addEventListener('change', async e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  
+  if(file.size > 5*1024*1024){
+    alert('Foto muy grande, máx 5MB');
+    return;
+  }
+  
+  const preview = document.getElementById('photoPreview');
+  const previewImg = document.getElementById('previewImg');
+  const status = document.getElementById('uploadStatus');
+  
+  preview.classList.remove('hidden');
+  previewImg.src = URL.createObjectURL(file);
+  status.textContent = '📤 Subiendo a Drive...';
+  status.className='text-[11px] mt-2 font-mono text-amber-300';
+  
+  try{
+    const base64 = await fileToBase64(file);
+    const payload = {
+      fileName: file.name,
+      mimeType: file.type,
+      base64Data: base64,
+      folderId: window.DRIVE_FOLDER_ID || ""
+    };
+    
+    // UNIFICADO: usa el mismo Apps Script para email y drive
+    const driveUrl = window.APPS_SCRIPT_DRIVE_URL || window.APPS_SCRIPT_URL || window.APPS_SCRIPT_EMAIL_URL;
+    
+    if(!driveUrl || driveUrl.includes('TU_ID')){
+      throw new Error('Configura APPS_SCRIPT_URL en config.js con tu URL del Apps Script UNIFICADO (appscript-unificado.gs)');
+    }
+    
+    const resp = await fetch(driveUrl, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    
+    const result = await resp.json();
+    
+    if(result.success){
+      uploadedPhotoUrl = result.url;
+      status.textContent = '✅ Subida OK a Drive: ' + result.fileName;
+      status.className='text-[11px] mt-2 font-mono text-emerald-300';
+      document.getElementById('photoUrlManual').value = result.url;
+      console.log('Foto Drive URL:', result.url);
+    } else {
+      throw new Error(result.error || 'Error subiendo');
+    }
+  }catch(err){
+    status.textContent = '❌ Error subiendo: ' + err.message + ' - Puedes pegar URL manual abajo';
+    status.className='text-[11px] mt-2 font-mono text-red-300';
+    console.error(err);
+  }
+});
+function fileToBase64(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 document.getElementById('groupForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const btn=document.getElementById('btnSubmit');
@@ -119,53 +221,67 @@ document.getElementById('groupForm').addEventListener('submit', async e=>{
   btn.disabled=true; btn.textContent='Registrando...';
   msg.classList.remove('hidden');
   msg.className='text-xs p-3 rounded-xl bg-white/10';
-  msg.textContent='Guardando grupo...';
+  msg.textContent='Guardando...';
   
   try{
     if(!activeEvent) await loadActiveEvent();
     if(!activeEvent) throw new Error('No hay evento activo');
     
-    const grado = document.getElementById('grado').value.trim();
+    const categoryId = document.getElementById('categoryId').value;
+    const tipo = document.getElementById('tipoPresentacion').value;
     const title = document.getElementById('title').value.trim();
+    const nombreGrupo = document.getElementById('nombreGrupo').value.trim();
     const team = document.getElementById('team').value.trim();
     const description = document.getElementById('description').value.trim();
+    const grado = document.getElementById('grado').value.trim();
+    const duracion = document.getElementById('duracion').value.trim();
     const contactEmail = document.getElementById('contactEmail').value.trim();
     const contactPhone = document.getElementById('contactPhone').value.trim();
     const tutorName = document.getElementById('tutorName').value.trim();
-    const photoUrl = document.getElementById('photoUrl').value.trim() || null;
-    const categoryId = document.getElementById('categoryId').value;
+    const photoUrlManual = document.getElementById('photoUrlManual').value.trim();
     
-    // Payload base con columnas que seguro existen
+    const finalPhotoUrl = uploadedPhotoUrl || photoUrlManual || null;
+    
+    // Título enriquecido con tipo si no está incluido
+    let finalTitle = title;
+    if(tipo && !title.toLowerCase().includes(tipo.toLowerCase())){
+      // No prependemos, dejamos título limpio pero guardamos tipo en descripción o campo extra
+    }
+    
+    // Payload base
     let payload = {
       event_id: activeEvent.id,
       category_id: categoryId,
-      title: title,
-      team: team + (grado ? ` | ${grado}` : ''),
+      title: finalTitle,
+      team: team,
       description: description,
-      photo_url: photoUrl,
-      activo: false, // queda pendiente hasta aprobación admin
+      photo_url: finalPhotoUrl,
+      activo: false,
     };
     
-    // Intentar con columnas nuevas si existen (contact_email, contact_phone, tutor_name, estado_registro)
-    // Si la tabla no tiene esas columnas, Supabase dará error, hacemos fallback
-    let payloadExtended = {
+    let payloadExt = {
       ...payload,
       contact_email: contactEmail,
       contact_phone: contactPhone,
       tutor_name: tutorName,
-      estado_registro: 'PENDIENTE'
+      estado_registro: 'PENDIENTE',
+      nombre_grupo: nombreGrupo || null,
+      tipo_presentacion: tipo,
+      grado_seccion: grado,
+      duracion_estimada: duracion
     };
     
-    let inserted = null;
-    let error = null;
-    
-    // Intento 1: con columnas extendidas
-    let res = await supabaseClient.from('projects').insert(payloadExtended).select().single();
+    let inserted=null;
+    let res = await supabaseClient.from('projects').insert(payloadExt).select().single();
     if(res.error){
-      console.warn('Columnas extendidas no existen, fallback a básico:', res.error.message);
-      // Intento 2: solo columnas básicas + guardar contacto en description
-      const descWithContact = `${description}\n\n--- CONTACTO ---\nEmail: ${contactEmail}\nTel: ${contactPhone}\nTutor: ${tutorName}`;
-      payload.description = descWithContact;
+      console.warn('Fallback sin columnas extendidas:', res.error.message);
+      // Fallback: guardar info extra en description
+      const descExt = `${description}\n\n--- INFO GRUPO ---\nTipo: ${tipo}\nNombre Grupo: ${nombreGrupo}\nGrado: ${grado}\nDuración: ${duracion}\nEmail: ${contactEmail}\nTel: ${contactPhone}\nTutor: ${tutorName}`;
+      payload.description = descExt;
+      // Intentar con nombre_grupo en team si no hay columna
+      if(nombreGrupo){
+        payload.team = `${nombreGrupo} | ${team}`;
+      }
       const res2 = await supabaseClient.from('projects').insert(payload).select().single();
       if(res2.error) throw res2.error;
       inserted = res2.data;
@@ -176,28 +292,19 @@ document.getElementById('groupForm').addEventListener('submit', async e=>{
     document.getElementById('groupForm').classList.add('hidden');
     document.getElementById('successSection').classList.remove('hidden');
     document.getElementById('successId').textContent = `ID: ${inserted.id.slice(0,8)} - ${inserted.title} - PENDIENTE`;
-    msg.classList.add('hidden');
-    
-    // Opcional: enviar email de confirmación al responsable si tienes EmailRelay configurado
-    if(window.APPS_SCRIPT_EMAIL_URL && window.APPS_SCRIPT_EMAIL_URL.includes('/exec')){
-      fetch(window.APPS_SCRIPT_EMAIL_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({
-          to: contactEmail,
-          id: inserted.id,
-          nombre: team.split(',')[0] || title,
-          evento: `Registro grupo - ${activeEvent.nombre} - ${title} (Pendiente aprobación)`
-        })
-      }).catch(()=>{});
+    if(finalPhotoUrl){
+      const img=document.getElementById('successPhoto');
+      img.src=finalPhotoUrl;
+      img.classList.remove('hidden');
     }
+    msg.classList.add('hidden');
     
   }catch(err){
     msg.classList.remove('hidden');
     msg.className='text-xs p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
-    msg.textContent='Error: '+err.message + ' - Si es error de RLS, ejecuta en Supabase: create policy \"Public can insert projects pending\" on projects for insert with check (activo = false);';
+    msg.textContent='Error: '+err.message;
   } finally {
-    btn.disabled=false; btn.textContent='📝 Registrar Grupo Concursante';
+    btn.disabled=false; btn.textContent='📝 Registrar Grupo / Presentación';
   }
 });
 window.addEventListener('load', async()=>{
