@@ -182,3 +182,15 @@ body{
 .text-brown{color: var(--c-brown-deep)}
 .text-cream{color: var(--c-cream)}
 .border-brown{border-color: var(--c-brown-deep)}
+
+/* Minimalista impactful details v13 */
+.shadow-soft{box-shadow: var(--shadow-soft)}
+.shadow-medium{box-shadow: var(--shadow-medium)}
+.card:hover{transform: translateY(-1px); transition: transform .2s, box-shadow .2s; box-shadow: var(--shadow-medium)}
+.btn-ghost:hover{background: var(--c-cream-2); border-color: rgba(72,32,0,0.2)}
+.input:disabled{opacity:0.5}
+.animate-pulse-slow{animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+/* Small amber accent bar for impactful titles */
+.accent-left{position:relative; padding-left:16px}
+.accent-left::before{content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background: var(--c-amber); border-radius:999px}

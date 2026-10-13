@@ -3,7 +3,7 @@ window.SUPABASE_URL = "https://pgnlafozaukhdqlxfcfk.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
 window.EDGE_FUNCTION_URL = window.SUPABASE_URL + "/functions/v1/send-qr";
 
-window.APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx58HBzJ4OlM0Xidrs4kGnWbrew9XW2aP6dH7x9d406s-1jnitHMuLygvsWMjoPpbcxZg/exec";
+window.APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGuy8jVbTkoi4g-WsWlRFFyzaC4qd6u42H4UXjiLy172WwCUD9JwsuVE1_0KY3JASyLA/exec";
 
 // Compatibilidad
 window.APPS_SCRIPT_EMAIL_URL = window.APPS_SCRIPT_URL;

@@ -6,118 +6,191 @@
 <title>Votación - Feria San Martín</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-tailwind.config = {
-  theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c5', yellow:'#ffe846', amber:'#ffba08', brownDeep:'#482000', pink:'#fe1954', cyan:'#04bdcf', orange:'#e28d00' } } }
-}
+tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c5', yellow:'#ffe846', amber:'#ffba08', brownDeep:'#482000', pink:'#fe1954' } } } }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=11"></script>
-<link rel="stylesheet" href="styles.css?v=11">
+<script src="config.js?v=13"></script>
+<link rel="stylesheet" href="styles.css?v=13">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
 </head>
-<body class="min-h-screen bg-cream text-brownDeep">
-<header class="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-brownDeep/5">
-  <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
-    <div class="flex items-center gap-3">
-      <div class="event-square w-10 h-10 text-sm bg-brownDeep text-cream">🗳️</div>
+<body class="min-h-screen bg-cream text-brownDeep p-4 md:p-8">
+<main class="w-full max-w-[720px] mx-auto">
+  <div class="text-center mb-8">
+    <p class="text-[11px] font-black tracking-[0.2em] opacity-30">VOTACIÓN • SAN MARTÍN</p>
+    <h1 class="font-display font-black text-[2.2rem] leading-[0.9] tracking-tight mt-3">Elige tu favorito</h1>
+    <p id="identityLabel" class="text-[13px] opacity-50 mt-2">Verifica tu ingreso con correo y DNI</p>
+  </div>
+  <!-- Selector evento si hay varios -->
+  <div id="eventSelector" class="hidden card p-4 mb-4">
+    <p class="text-[11px] font-black tracking-widest opacity-40">EVENTO</p>
+    <div id="eventList" class="mt-2 grid gap-2"></div>
+  </div>
+  <div id="eventInfo" class="card p-5 mb-6 hidden">
+    <div class="flex gap-3 items-center">
+      <div id="eventSquare" class="w-12 h-12 rounded-[12px] overflow-hidden bg-cream2 border border-brownDeep/5 hidden"><img id="eventImage" class="w-full h-full object-cover"></div>
       <div>
-        <h1 class="font-display font-black text-lg leading-none">Votación</h1>
-        <p class="text-[11px] opacity-60 font-bold tracking-widest">FERIA SAN MARTÍN</p>
+        <p id="eventName" class="font-bold text-sm"></p>
+        <p id="eventDesc" class="text-[12px] opacity-50"></p>
       </div>
     </div>
-    <div id="eventTag" class="badge badge-cream">Conectando...</div>
   </div>
-</header>
-<main class="max-w-3xl mx-auto p-6">
-  <div class="card p-6 text-center">
-    <p id="identityLabel" class="text-sm opacity-60">Verificando evento...</p>
-    <p id="status" class="text-[11px] font-mono opacity-30 mt-1"></p>
-  </div>
-  <section id="loginPanel" class="mt-6">
-    <form id="loginForm" class="card p-6 md:p-8 grid gap-4">
-      <div class="text-center mb-2">
-        <h2 class="font-display font-black text-2xl">Ingresa para votar</h2>
-        <p class="text-sm opacity-60 mt-1">Mismo correo y DNI con el que te registraste y pasaste por scanner</p>
-      </div>
-      <input id="emailInput" type="email" required placeholder="tu@correo.com (registrado)" class="input">
+  <!-- Login -->
+  <section id="loginPanel" class="card p-6 md:p-8">
+    <h2 class="font-bold text-[15px]">Valida tu entrada</h2>
+    <p class="text-[12px] opacity-50 mt-1">Solo quienes ingresaron por scanner pueden votar</p>
+    <form id="loginForm" class="mt-5 grid gap-3">
+      <input id="emailInput" type="email" required placeholder="tu@correo.com" class="input">
       <input id="dniInput" required pattern="[0-9]{8}" maxlength="8" placeholder="DNI 8 dígitos" class="input">
-      <button id="btnLogin" class="btn-primary w-full py-4">Continuar</button>
-      <p id="loginMessage" class="hidden p-3 rounded-[12px] text-sm"></p>
+      <button class="btn-primary w-full py-3.5">Continuar</button>
+      <p id="loginMessage" class="hidden p-3 rounded-[12px] text-[13px] bg-pink/10 border border-pink/20 text-pink"></p>
     </form>
+    <p class="text-[11px] opacity-30 mt-4 text-center">Tu voto es único por categoría • No se puede cambiar</p>
   </section>
-  <section id="votePanel" class="hidden mt-6 space-y-6">
-    <div id="attendanceMessage" class="card p-4 bg-brownDeep text-cream text-sm"></div>
-    <div id="summary" class="card-cream p-4 rounded-[16px] text-xs"></div>
+  <!-- Vote -->
+  <section id="votePanel" class="hidden space-y-6">
+    <div class="card-cream rounded-[16px] p-4 flex justify-between items-center">
+      <div>
+        <p class="text-[11px] font-black tracking-widest opacity-40">VOTANTE</p>
+        <p id="voterEmail" class="text-[13px] font-bold"></p>
+        <p id="voterName" class="text-[12px] opacity-60"></p>
+      </div>
+      <span class="badge badge-green text-[10px]">INGRESO VALIDADO</span>
+    </div>
     <div id="gradeList" class="grid gap-8"></div>
-    <button id="btnLogout" class="btn-ghost text-xs">Cambiar usuario</button>
+    <div class="text-center pt-6">
+      <a href="resultados.html" class="text-[11px] opacity-40 hover:opacity-80 underline">Ver resultados en vivo →</a>
+    </div>
   </section>
 </main>
 <script>
-let supabaseClient=null, voter=null, activeEvent=null, categories=[], myVotes={};
-function log(msg){ const el=document.getElementById('status'); if(el) el.textContent=msg; console.log(msg); }
-function initClient(){ supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY); return supabaseClient; }
-async function loadActiveEvent(){
-  try{
-    log('Buscando evento activo...');
-    const {data, error} = await supabaseClient.from('events').select('*').eq('activo', true).limit(1).single();
-    if(error){ document.getElementById('eventTag').textContent='Sin evento'; document.getElementById('identityLabel').textContent='No hay evento activo. Configúralo en admin.html'; return null; }
-    activeEvent=data; document.getElementById('eventTag').textContent=data.nombre; document.getElementById('eventTag').className='badge badge-amber'; document.getElementById('identityLabel').textContent=`Evento: ${data.nombre}`; log('Evento: '+data.nombre); return data;
-  }catch(err){ log('Error: '+err.message); return null; }
+let supabaseClient=null, voter=null, activeEvent=null, activeEvents=[], categories=[], myVotes={};
+function initClient(){
+  supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return supabaseClient;
+}
+function renderEventInfo(ev){
+  if(!ev) return;
+  document.getElementById('eventInfo').classList.remove('hidden');
+  document.getElementById('eventName').textContent = ev.nombre;
+  document.getElementById('eventDesc').textContent = ev.descripcion || '';
+  const img = ev.imagen_url || ev.image_url || '';
+  if(img){
+    document.getElementById('eventSquare').classList.remove('hidden');
+    document.getElementById('eventImage').src = img;
+  } else {
+    document.getElementById('eventSquare').classList.add('hidden');
+  }
+}
+function renderEventSelector(events){
+  const sel = document.getElementById('eventSelector');
+  const list = document.getElementById('eventList');
+  if(events.length <=1){ sel.classList.add('hidden'); return; }
+  sel.classList.remove('hidden');
+  list.innerHTML='';
+  events.forEach(ev=>{
+    const btn=document.createElement('button');
+    btn.className=`w-full text-left p-3 rounded-[12px] border text-sm font-bold ${activeEvent && activeEvent.id===ev.id ? 'bg-brownDeep text-cream border-brownDeep' : 'bg-white border-brownDeep/10'}`;
+    btn.textContent=ev.nombre;
+    btn.onclick=()=>{ activeEvent=ev; renderEventInfo(ev); renderEventSelector(events); };
+    list.appendChild(btn);
+  });
+}
+async function loadActiveEvents(){
+  const {data} = await supabaseClient.from('events').select('*').eq('activo',true).order('fecha',{ascending:false});
+  activeEvents = data||[];
+  if(activeEvents.length>0){
+    activeEvent = activeEvents[0];
+    renderEventInfo(activeEvent);
+    renderEventSelector(activeEvents);
+  }
 }
 async function authenticate(email,dni){
-  const btn=document.getElementById('btnLogin'), msgEl=document.getElementById('loginMessage'); btn.disabled=true; btn.textContent='Verificando...'; msgEl.classList.add('hidden');
-  try{
-    if(!activeEvent) await loadActiveEvent(); if(!activeEvent) throw new Error('No hay evento activo');
-    log(`Autenticando ${email} / ${dni}...`);
-    const {data: reg, error} = await supabaseClient.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', email.toLowerCase()).eq('dni', dni).single();
-    if(error || !reg){ msgEl.textContent='❌ No encontramos registro con ese correo y DNI. ¿Te registraste en index.html?'; msgEl.className='p-3 rounded-[12px] text-sm bg-pink/10 border border-pink/20 text-pink'; msgEl.classList.remove('hidden'); return false; }
-    if(reg.estado !== 'INGRESADO'){ msgEl.innerHTML=`⚠️ Ya estás registrado como <b>${reg.nombres}</b> pero aún no pasaste por scanner. Estado: <b>${reg.estado}</b>.`; msgEl.className='p-3 rounded-[12px] text-sm bg-amber/10 border border-amber/20 text-brownDeep'; msgEl.classList.remove('hidden'); return false; }
-    voter=reg;
-    let votes=[]; try{ const {data, error:ve} = await supabaseClient.from('votes').select('category_id, project_id, created_at, projects(title, team, photo_url, description, nombre_grupo)').eq('registration_id', voter.id); if(ve) throw ve; votes=data||[]; }catch(e){ log('Fallback votos'); const {data} = await supabaseClient.from('votes').select('category_id, project_id, created_at').eq('registration_id', voter.id); votes=data||[]; if(votes.length>0){ const projIds=votes.map(v=>v.project_id); const {data:projs}=await supabaseClient.from('projects').select('id, title, team, photo_url, nombre_grupo').in('id',projIds); const map={}; projs?.forEach(p=>map[p.id]=p); votes=votes.map(v=>({...v, projects: map[v.project_id]||null})); } }
-    myVotes={}; votes.forEach(v=>{ myVotes[v.category_id]={project_id: v.project_id, project: v.projects, created_at: v.created_at}; });
-    const {data: cats} = await supabaseClient.from('categories').select('*').eq('event_id', activeEvent.id).order('orden');
-    const {data: projs} = await supabaseClient.from('projects').select('*').eq('event_id', activeEvent.id).eq('activo', true);
-    categories=cats.map(c=>({...c, projects: projs.filter(p=>p.category_id===c.id)}));
-    document.getElementById('loginPanel').classList.add('hidden'); document.getElementById('votePanel').classList.remove('hidden');
-    document.getElementById('attendanceMessage').innerHTML=`¡Hola <b>${voter.nombres} ${voter.apellidos}</b>! ${voter.nombre_estudiante? ' - '+voter.nombre_estudiante:''} - Puedes votar en cada categoría una sola vez.`;
-    updateSummary(); render();
-  }catch(err){ msgEl.textContent='Error: '+err.message; msgEl.className='p-3 rounded-[12px] bg-pink/10 text-pink'; msgEl.classList.remove('hidden'); } finally{ btn.disabled=false; btn.textContent='Continuar'; }
+  if(!activeEvent) await loadActiveEvents();
+  if(!activeEvent){ document.getElementById('loginMessage').textContent='No hay evento activo'; document.getElementById('loginMessage').classList.remove('hidden'); return false; }
+  const {data: reg, error} = await supabaseClient.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', email.toLowerCase()).eq('dni', dni).eq('estado','INGRESADO').maybeSingle();
+  if(error || !reg){
+    document.getElementById('loginMessage').textContent='No encontramos ingreso validado con ese correo y DNI. Pasa por el scanner de ingreso primero.';
+    document.getElementById('loginMessage').classList.remove('hidden');
+    return false;
+  }
+  voter=reg;
+  const {data: votes} = await supabaseClient.from('votes').select('category_id').eq('registration_id', voter.id);
+  myVotes={}; votes?.forEach(v=>myVotes[v.category_id]=true);
+  document.getElementById('loginPanel').classList.add('hidden');
+  document.getElementById('votePanel').classList.remove('hidden');
+  document.getElementById('voterEmail').textContent=voter.email;
+  document.getElementById('voterName').textContent=`${voter.nombres} ${voter.apellidos} • ${voter.nombre_estudiante}`;
+  document.getElementById('identityLabel').textContent=`Votando en: ${activeEvent.nombre}`;
+  await loadCategories();
+  return true;
 }
-function updateSummary(){ const total=categories.length, voted=Object.keys(myVotes).length; document.getElementById('summary').textContent=`Has votado en ${voted} de ${total} categorías.`; }
+async function loadCategories(){
+  const {data: cats} = await supabaseClient.from('categories').select('*').eq('event_id', activeEvent.id).order('orden');
+  const {data: projs} = await supabaseClient.from('projects').select('*').eq('event_id', activeEvent.id).eq('activo',true).order('orden');
+  categories = cats.map(c=>({...c, projects: projs.filter(p=>p.category_id===c.id)}));
+  render();
+}
 function render(){
-  const list=document.getElementById('gradeList'); list.innerHTML=''; if(categories.length===0){ list.innerHTML='<p class="text-sm opacity-40">No hay categorías</p>'; return; }
+  const list=document.getElementById('gradeList'); list.innerHTML='';
   categories.forEach(cat=>{
-    const voteInfo=myVotes[cat.id]; const sec=document.createElement('section'); sec.className='card p-6';
-    sec.innerHTML=`<div class="flex justify-between items-center"><h2 class="font-display font-black text-xl">${cat.label}</h2><span class="badge ${voteInfo?'badge-green':cat.votacion_abierta?'badge-amber':'badge-cream'}">${voteInfo?'VOTASTE':cat.votacion_abierta?'ABIERTA':'CERRADA'}</span></div>`;
-    if(voteInfo){
-      const proj=voteInfo.project; const votedAt=voteInfo.created_at? new Date(voteInfo.created_at).toLocaleString():'';
-      const votedCard=document.createElement('div'); votedCard.className='mt-4 rounded-[16px] border-2 border-green-500/30 bg-green-50 p-4';
-      votedCard.innerHTML=`<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-black text-sm">✓</div><div class="flex-1"><p class="text-[11px] font-black tracking-widest text-green-700">TU VOTO</p><h3 class="font-black text-lg mt-1">${proj? proj.title : 'Proyecto '+voteInfo.project_id}</h3>${proj && proj.nombre_grupo? `<p class="text-xs opacity-60">Grupo: ${proj.nombre_grupo}</p>`:''}${proj && proj.team? `<p class="text-xs opacity-60 mt-1">Equipo: ${proj.team}</p>`:''}${votedAt? `<p class="text-[11px] opacity-40 mt-2">Votaste el ${votedAt}</p>`:''}${proj && proj.photo_url? `<img src="${proj.photo_url}" class="mt-3 w-full max-w-[320px] h-[180px] object-cover rounded-[12px] border">`:''}</div></div><p class="mt-3 text-xs opacity-60">No puedes cambiar tu voto. Habla con admin si necesitas corregir.</p>`;
-      sec.appendChild(votedCard);
+    const voted = myVotes[cat.id];
+    const sec=document.createElement('section'); sec.className='card p-6';
+    let header = `
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full ${voted ? 'bg-green-500' : cat.votacion_abierta ? 'bg-amber animate-pulse' : 'bg-brownDeep/20'}"></span>
+          <h2 class="font-display font-black text-xl leading-none">${cat.label}</h2>
+        </div>
+        <span class="text-[11px] font-black tracking-widest ${voted?'text-green-700':cat.votacion_abierta?'text-brownDeep':'opacity-30'}">${voted?'VOTADO':cat.votacion_abierta?'ABIERTA':'CERRADA'}</span>
+      </div>
+    `;
+    sec.innerHTML = header;
+    if(voted){
+      sec.innerHTML += `<div class="mt-4 card-cream p-4 rounded-[14px] flex gap-3 items-center"><div class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm">✓</div><p class="text-[13px] font-bold">Ya votaste en esta categoría</p></div>`;
     } else if(cat.votacion_abierta){
-      if(cat.projects.length===0){ sec.innerHTML+='<p class="mt-4 text-sm opacity-40">No hay proyectos aún.</p>'; }
-      else {
-        const grid=document.createElement('div'); grid.className='mt-4 grid gap-3 sm:grid-cols-2';
+      if(cat.projects.length===0){
+        sec.innerHTML += `<p class="mt-4 text-[13px] opacity-40">Aún no hay proyectos activos en esta categoría</p>`;
+      } else {
+        const grid=document.createElement('div'); grid.className='mt-5 grid gap-3';
         cat.projects.forEach(p=>{
-          const card=document.createElement('article'); card.className='card-cream p-4 rounded-[16px] hover:shadow-medium transition cursor-pointer';
-          card.innerHTML=`${p.photo_url?`<img src="${p.photo_url}" class="w-full h-[160px] object-cover rounded-[12px] mb-3">`:''}<div class="flex gap-2 mb-2"><span class="badge badge-cream text-[9px]">${p.tipo_presentacion||''}</span>${p.nombre_grupo?`<span class="badge badge-amber text-[9px]">${p.nombre_grupo}</span>`:''}</div><h3 class="font-black text-sm">${p.title}</h3>${p.team?`<p class="text-xs opacity-60 mt-1">${p.team}</p>`:''}${p.description?`<p class="text-[11px] opacity-50 mt-2 line-clamp-2">${p.description}</p>`:''}<button class="mt-3 w-full btn-primary text-sm py-2.5">Votar por este</button>`;
-          card.querySelector('button').onclick=()=>castVote(cat,p); grid.appendChild(card);
-        }); sec.appendChild(grid);
+          const card=document.createElement('article'); 
+          card.className='group flex gap-4 p-4 rounded-[16px] border border-brownDeep/5 bg-white hover:border-brownDeep/15 hover:shadow-soft transition cursor-pointer';
+          card.innerHTML=`
+            <div class="w-[88px] h-[66px] rounded-[10px] overflow-hidden bg-cream2 border border-brownDeep/5 shrink-0">
+              ${p.photo_url?`<img src="${p.photo_url}" class="w-full h-full object-cover">`:`<div class="w-full h-full flex items-center justify-center text-[11px] font-black opacity-20">SM</div>`}
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-bold text-[14px] leading-tight">${p.title}</h3>
+              <p class="text-[12px] opacity-50 truncate">${p.team||''}</p>
+              <div class="mt-2 flex gap-2">
+                <button class="btn-primary text-[11px] py-1.5 px-3">Votar</button>
+              </div>
+            </div>
+          `;
+          card.querySelector('button').onclick=(e)=>{ e.stopPropagation(); castVote(cat,p); };
+          card.onclick=()=>castVote(cat,p);
+          grid.appendChild(card);
+        });
+        sec.appendChild(grid);
       }
-    } else { sec.innerHTML+='<p class="mt-4 text-sm opacity-40">Votación cerrada.</p>'; }
+    } else {
+      sec.innerHTML += `<p class="mt-4 text-[13px] opacity-40">Votación cerrada por el momento. Espera a que el admin la abra.</p>`;
+    }
     list.appendChild(sec);
   });
 }
 async function castVote(cat, proj){
-  if(!confirm(`¿Confirmas voto por "${proj.title}" en ${cat.label}? No podrás cambiarlo.`)) return;
-  try{
-    const {error} = await supabaseClient.from('votes').insert({event_id: activeEvent.id, category_id: cat.id, project_id: proj.id, registration_id: voter.id, voter_email: voter.email});
-    if(error){ if(error.message.includes('duplicate') || error.code==='23505'){ alert('Ya votaste en esta categoría'); const {data} = await supabaseClient.from('votes').select('category_id, project_id, created_at, projects(title, team, photo_url, nombre_grupo)').eq('registration_id', voter.id).eq('category_id', cat.id).single(); if(data){ myVotes[cat.id]={project_id: data.project_id, project: data.projects, created_at: data.created_at}; } render(); updateSummary(); return; } alert('Error: '+error.message); return; }
-    myVotes[cat.id]={project_id: proj.id, project: proj, created_at: new Date().toISOString()}; render(); updateSummary();
-  }catch(err){ alert('Error: '+err.message); }
+  if(myVotes[cat.id]) return;
+  if(!confirm(`¿Votar por "${proj.title}" en ${cat.label}? No podrás cambiarlo.`)) return;
+  const {error} = await supabaseClient.from('votes').insert({event_id: activeEvent.id, category_id: cat.id, project_id: proj.id, registration_id: voter.id, voter_email: voter.email});
+  if(error){
+    alert(error.message.includes('duplicate')||error.message.includes('unique') ? 'Ya votaste en esta categoría' : 'Error: '+error.message);
+    return;
+  }
+  myVotes[cat.id]=true; render();
 }
 document.getElementById('loginForm').addEventListener('submit', async e=>{ e.preventDefault(); await authenticate(document.getElementById('emailInput').value.trim(), document.getElementById('dniInput').value.trim()); });
-document.getElementById('btnLogout').addEventListener('click', ()=>{ voter=null; myVotes={}; document.getElementById('votePanel').classList.add('hidden'); document.getElementById('loginPanel').classList.remove('hidden'); });
-window.addEventListener('load', async()=>{ initClient(); await loadActiveEvent(); const params=new URLSearchParams(window.location.search); const id=params.get('id'); if(id && supabaseClient){ try{ const {data: reg}=await supabaseClient.from('registrations').select('email,dni').eq('id',id).single(); if(reg){ document.getElementById('emailInput').value=reg.email; document.getElementById('dniInput').value=reg.dni; } }catch(e){} } });
+window.addEventListener('load', async()=>{ initClient(); await loadActiveEvents(); });
 </script>
 </body>
 </html>
