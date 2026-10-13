@@ -3,10 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bienvenida - Display</title>
+<title>Bienvenida - Display v2 FIX</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script>
+window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
+window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
+</script>
+<script src="config.js?v=7"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
 <style>body{font-family:'Plus Jakarta Sans',sans-serif}</style>
 </head>
@@ -14,15 +18,20 @@
   <div class="fixed inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(56,189,248,0.12),transparent_35%),radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.1),transparent_30%)]"></div>
   <div class="relative w-full h-screen p-6 md:p-10 flex items-center justify-center">
     <div class="w-full max-w-6xl bg-white/[0.04] border border-white/10 rounded-[40px] p-8 md:p-12 backdrop-blur-2xl shadow-2xl relative overflow-hidden min-h-[560px] flex flex-col">
-      <div class="w-full text-center text-[clamp(0.5rem,2.8vw,1.25rem)] font-black tracking-wide">EVENTO</div>
+      <div class="w-full text-center text-[clamp(0.5rem,2.8vw,1.25rem)] font-black tracking-wide opacity-60">EVENTO EN VIVO</div>
       <div class="flex justify-between items-start mt-4">
         <div id="eventTag" class="bg-white/10 px-4 py-2 rounded-full text-xs font-bold text-white/60">Conectando...</div>
-        <button id="voiceToggle" class="bg-white/10 px-4 py-2 rounded-full text-xs font-bold">🔇 Sonido</button>
+        <div class="flex gap-2">
+          <div id="status" class="bg-white/10 px-3 py-2 rounded-full text-[10px] font-mono">Iniciando...</div>
+          <button id="voiceToggle" class="bg-white/10 px-4 py-2 rounded-full text-xs font-bold">🔇 Sonido</button>
+        </div>
       </div>
       <div id="waitingState" class="flex-1 flex flex-col items-center justify-center text-center py-20">
         <h3 id="waitingMessage" class="text-5xl md:text-7xl font-black leading-[0.95] max-w-5xl">Esperando ingresos...</h3>
         <p class="text-white/40 mt-6 text-lg">Tu bienvenida aparecerá aquí automáticamente</p>
+        <p id="debugLog" class="mt-4 text-[11px] font-mono text-white/20"></p>
         <div id="queueBadge" class="hidden mt-6 bg-sky-500/10 border border-sky-500/20 text-sky-200 px-5 py-2.5 rounded-full text-sm font-bold"></div>
+        <button id="btnTestWelcome" class="mt-8 text-xs bg-white/10 px-4 py-2 rounded-full">Probar bienvenida (test)</button>
       </div>
       <div id="welcomeCard" class="hidden flex-1 flex flex-col justify-center">
         <p class="text-emerald-300 text-xs font-bold tracking-widest">● BIENVENIDO</p>
@@ -34,70 +43,155 @@
     </div>
   </div>
 <script>
+let supabaseClient=null;
 let isShowing=false, localQueue=[], voiceEnabled=localStorage.getItem('voice_enabled')==='true';
 let activeEvent=null;
-const welcomeCard=document.getElementById('welcomeCard'), waitingState=document.getElementById('waitingState'), waitingMessage=document.getElementById('waitingMessage'), welcomeTitle=document.getElementById('welcomeTitle'), welcomeSubtitle=document.getElementById('welcomeSubtitle'), welcomeEvent=document.getElementById('welcomeEvent'), welcomeMsg=document.getElementById('welcomeMsg'), queueBadge=document.getElementById('queueBadge'), eventTag=document.getElementById('eventTag');
-
-function getVoice(){const v=speechSynthesis.getVoices(); return v.find(x=>x.lang==='es-PE')||v[0];}
-
-async function loadActiveEvent(){
-  const {data, error} = await supabase.from('events').select('*').eq('activo', true).order('created_at',{ascending:false}).limit(1).single();
-  if(error || !data){ eventTag.textContent='Sin evento activo'; waitingMessage.textContent='No hay evento activo'; return null; }
-  activeEvent=data;
-  eventTag.textContent=data.nombre;
-  waitingMessage.textContent=data.mensaje_bienvenida || 'Bienvenidos';
-  return data;
+const welcomeCard=document.getElementById('welcomeCard'), waitingState=document.getElementById('waitingState'), waitingMessage=document.getElementById('waitingMessage'), welcomeTitle=document.getElementById('welcomeTitle'), welcomeSubtitle=document.getElementById('welcomeSubtitle'), welcomeEvent=document.getElementById('welcomeEvent'), welcomeMsg=document.getElementById('welcomeMsg'), queueBadge=document.getElementById('queueBadge'), eventTag=document.getElementById('eventTag'), statusEl=document.getElementById('status'), debugLog=document.getElementById('debugLog');
+function log(t){
+  statusEl.textContent=t;
+  debugLog.textContent=new Date().toLocaleTimeString()+' - '+t;
+  console.log(t);
 }
-
+function initClient(){
+  const url = window.SUPABASE_URL;
+  const key = window.SUPABASE_ANON_KEY;
+  if(!window.supabase?.createClient){
+    log('ERROR CDN no cargó');
+    eventTag.textContent='Error CDN';
+    return null;
+  }
+  try{
+    supabaseClient = window.supabase.createClient(url, key);
+    window.supabaseClient = supabaseClient;
+    log('Cliente OK: '+key.slice(0,20)+'...');
+    return supabaseClient;
+  }catch(e){
+    log('Error cliente: '+e.message);
+    return null;
+  }
+}
+function getVoice(){const v=speechSynthesis.getVoices(); return v.find(x=>x.lang==='es-PE')||v[0];}
+async function loadActiveEvent(){
+  if(!supabaseClient){ log('Sin cliente'); return null; }
+  try{
+    log('Buscando evento activo...');
+    const {data, error} = await supabaseClient.from('events').select('*').eq('activo', true).order('created_at',{ascending:false}).limit(1).single();
+    if(error || !data){
+      log('Sin evento activo: '+(error?.message||'no data'));
+      eventTag.textContent='Sin evento activo';
+      waitingMessage.textContent='No hay evento activo - créalo en admin.html';
+      return null;
+    }
+    activeEvent=data;
+    eventTag.textContent=data.nombre;
+    eventTag.className='bg-lime-300 text-black px-4 py-2 rounded-full text-xs font-bold';
+    // Mostrar mensaje bienvenida configurado
+    waitingMessage.textContent = data.mensaje_bienvenida ? data.mensaje_bienvenida.replace('[NOMBRE]','').slice(0,80) : 'Esperando ingresos...';
+    log('Evento activo: '+data.nombre+' | delay '+data.welcome_delay_seconds+'s dur '+data.welcome_duration_seconds+'s');
+    return data;
+  }catch(err){
+    log('Error loadActiveEvent: '+err.message);
+    return null;
+  }
+}
+function formatWelcomeMessage(template, reg){
+  if(!template) return '¡Qué alegría que estés aquí!';
+  return template.replace('[NOMBRE]', reg.nombres || '').replace('[APELLIDOS]', reg.apellidos || '');
+}
 function showWelcome(reg){
-  isShowing=true; waitingState.classList.add('hidden'); welcomeCard.classList.remove('hidden');
+  isShowing=true;
+  waitingState.classList.add('hidden');
+  welcomeCard.classList.remove('hidden');
+  
   welcomeTitle.textContent = `¡Hola! ${reg.nombres} ${reg.apellidos}`;
-  welcomeSubtitle.textContent = `${reg.parentesco||''} de ${reg.nombre_estudiante||''}`;
+  welcomeSubtitle.textContent = `${reg.parentesco||''} ${reg.nombre_estudiante? 'de '+reg.nombre_estudiante : ''}`.trim();
   welcomeEvent.textContent = activeEvent?.nombre || '';
-  welcomeMsg.textContent = activeEvent?.mensaje_bienvenida || '¡Qué alegría que estés aquí!';
-
+  welcomeMsg.textContent = formatWelcomeMessage(activeEvent?.mensaje_bienvenida, reg);
   // Confetti
-  for(let k=0;k<2;k++) setTimeout(()=>{for(let i=0;i<25;i++){const c=document.createElement('div'); c.className='absolute w-3 h-3 rounded-full'; c.style.left=Math.random()*90+'%'; c.style.top='10%'; c.style.background=['#38bdf8','#a78bfa'][Math.floor(Math.random()*2)]; document.body.appendChild(c); c.animate([{transform:'translateY(0)',opacity:1},{transform:'translateY(600px)',opacity:0}],{duration:3000,fill:'forwards'}); setTimeout(()=>c.remove(),4000);}},k*300);
-
+  for(let k=0;k<2;k++) setTimeout(()=>{for(let i=0;i<25;i++){const c=document.createElement('div'); c.className='absolute w-3 h-3 rounded-full'; c.style.left=Math.random()*90+'%'; c.style.top='10%'; c.style.background=['#38bdf8','#a78bfa','#f472b6'][Math.floor(Math.random()*3)]; document.body.appendChild(c); c.animate([{transform:'translateY(0)',opacity:1},{transform:'translateY(600px)',opacity:0}],{duration:3000,fill:'forwards'}); setTimeout(()=>c.remove(),4000);}},k*300);
   const duration = (activeEvent?.welcome_duration_seconds || 9) * 1000;
   const delayBeforeNext = activeEvent?.welcome_delay_seconds || 0;
-
   let voiceDone=!voiceEnabled, minDone=false;
-  function finish(){ if(voiceDone && minDone){ welcomeCard.classList.add('hidden'); if(localQueue.length>0){const n=localQueue.shift(); queueBadge.textContent=localQueue.length?localQueue.length+' en espera':''; if(!localQueue.length) queueBadge.style.display='none'; setTimeout(()=>showWelcome(n), delayBeforeNext*1000 || 800);} else{ waitingState.classList.remove('hidden'); isShowing=false; } } }
-
+  function finish(){
+    if(voiceDone && minDone){
+      welcomeCard.classList.add('hidden');
+      if(localQueue.length>0){
+        const n=localQueue.shift();
+        queueBadge.textContent=localQueue.length?localQueue.length+' en espera':'';
+        if(!localQueue.length) queueBadge.classList.add('hidden');
+        setTimeout(()=>showWelcome(n), delayBeforeNext*1000 || 800);
+      } else {
+        waitingState.classList.remove('hidden');
+        isShowing=false;
+        log('Esperando siguiente ingreso...');
+      }
+    }
+  }
   if(voiceEnabled){
-    const frase=`¡Bienvenido! ${reg.nombres} ${reg.apellidos}. ${reg.parentesco} de ${reg.nombre_estudiante}. ${activeEvent.mensaje_bienvenida}`;
-    const u=new SpeechSynthesisUtterance(frase); u.lang='es-PE'; u.rate=0.9; const v=getVoice(); if(v) u.voice=v;
-    u.onend=()=>{voiceDone=true; setTimeout(finish,1200);}; speechSynthesis.speak(u);
+    const frase=`¡Bienvenido! ${reg.nombres} ${reg.apellidos}. ${reg.parentesco||''} ${reg.nombre_estudiante? 'de '+reg.nombre_estudiante : ''}. ${activeEvent?.mensaje_bienvenida ? formatWelcomeMessage(activeEvent.mensaje_bienvenida, reg) : 'Que alegría que estés aquí'}`;
+    const u=new SpeechSynthesisUtterance(frase); u.lang='es-PE'; u.rate=0.9;
+    const v=getVoice(); if(v) u.voice=v;
+    u.onend=()=>{voiceDone=true; setTimeout(finish,800);};
+    u.onerror=()=>{voiceDone=true; finish();};
+    speechSynthesis.speak(u);
+    log('Voz: '+frase.slice(0,60)+'...');
   } else voiceDone=true;
+  
   setTimeout(()=>{minDone=true; finish();}, duration);
 }
-
 async function init(){
+  const client = initClient();
+  if(!client) return;
   activeEvent = await loadActiveEvent();
   if(!activeEvent) return;
-
-  // Suscripción Realtime - esto reemplaza el polling de Apps Script
-  supabase.channel('registrations-checkins')
+  log('Suscribiendo a Realtime...');
+  // Suscripción Realtime - reemplaza polling Apps Script
+  const channel = supabaseClient.channel('registrations-checkins-display')
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'registrations', filter:`event_id=eq.${activeEvent.id}`}, payload=>{
       const reg = payload.new;
+      log('Realtime UPDATE: '+reg.nombres+' estado='+reg.estado);
       if(reg.estado==='INGRESADO'){
-        if(isShowing){ localQueue.push(reg); queueBadge.style.display='inline-flex'; queueBadge.textContent=localQueue.length+' en espera'; }
-        else{
-          // Aplica el delay configurable antes de mostrar
+        if(isShowing){
+          localQueue.push(reg);
+          queueBadge.classList.remove('hidden');
+          queueBadge.textContent=localQueue.length+' en espera';
+          log('En cola: '+reg.nombres+' (cola '+localQueue.length+')');
+        } else {
           const delay = activeEvent.welcome_delay_seconds || 0;
+          log(`Mostrando en ${delay}s: ${reg.nombres}`);
           setTimeout(()=>showWelcome(reg), delay*1000);
         }
       }
-    }).subscribe();
+    })
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'registrations', filter:`event_id=eq.${activeEvent.id}`}, payload=>{
+      log('Nuevo registro (no ingresado): '+payload.new.email);
+    })
+    .subscribe((status)=>{
+      log('Realtime status: '+status);
+      if(status==='SUBSCRIBED'){
+        eventTag.textContent=activeEvent.nombre+' ● EN VIVO';
+      }
+    });
 }
-
 document.getElementById('voiceToggle').addEventListener('click', ()=>{
-  if(!voiceEnabled){ voiceEnabled=true; localStorage.setItem('voice_enabled','true'); speechSynthesis.speak(new SpeechSynthesisUtterance('Sonido activado')); }
-  else{ voiceEnabled=false; localStorage.removeItem('voice_enabled'); speechSynthesis.cancel(); }
-  document.getElementById('voiceToggle').textContent = voiceEnabled ? '🔊 Sonido activado' : '🔇 Sonido';
+  if(!voiceEnabled){
+    voiceEnabled=true;
+    localStorage.setItem('voice_enabled','true');
+    speechSynthesis.speak(new SpeechSynthesisUtterance('Sonido activado'));
+    document.getElementById('voiceToggle').textContent='🔊 Sonido activado';
+    log('Sonido activado');
+  } else {
+    voiceEnabled=false;
+    localStorage.removeItem('voice_enabled');
+    speechSynthesis.cancel();
+    document.getElementById('voiceToggle').textContent='🔇 Sonido';
+    log('Sonido desactivado');
+  }
 });
-
+document.getElementById('btnTestWelcome').addEventListener('click', ()=>{
+  const fakeReg={nombres:'Prueba', apellidos:'Demo', nombre_estudiante:'Alumno Test', parentesco:'Papá'};
+  showWelcome(fakeReg);
+});
 window.addEventListener('load', init);
 </script>
 </body>
