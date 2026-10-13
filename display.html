@@ -17,9 +17,6 @@ tailwind.config = {
         amberBright: '#ffd81b',
         amber: '#ffba08',
         orange: '#e28d00',
-        orangeBurnt: '#bb6302',
-        brownOrange: '#984c08',
-        brownDark: '#7c3e0b',
         brownDeep: '#482000',
         pink: '#fe1954',
         cyan: '#04bdcf',
@@ -29,153 +26,143 @@ tailwind.config = {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=12"></script>
-<link rel="stylesheet" href="styles.css?v=12">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
+<script src="config.js?v=13"></script>
+<link rel="stylesheet" href="styles.css?v=13">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
 </head>
-<body class="min-h-screen bg-cream text-brownDeep overflow-hidden flex flex-col">
-<!-- Top bar with controls -->
-<div class="w-full px-6 md:px-10 py-4 flex justify-between items-center bg-white/60 backdrop-blur-xl border-b border-brownDeep/5 sticky top-0 z-20">
-  <div class="flex items-center gap-3">
-    <div class="w-9 h-9 rounded-full bg-brownDeep text-cream flex items-center justify-center font-black text-sm">SM</div>
-    <span class="font-bold text-sm tracking-tight">Display Feria</span>
-    <span id="eventTag" class="ml-3 badge badge-cream">Conectando...</span>
-  </div>
-  <div class="flex items-center gap-3">
-    <span class="text-[11px] font-bold tracking-widest opacity-40">BIENVENIDA</span>
-    <div id="welcomeToggle" class="toggle active" title="Apagar / Encender bienvenida">
-      <div class="toggle-knob"></div>
-    </div>
-    <button id="voiceToggle" class="btn-ghost text-xs py-2 px-4 ml-2">🔇 Sonido</button>
-    <div id="queueBadge" class="hidden badge badge-brown ml-2"></div>
-  </div>
-</div>
-<!-- Main display area -->
-<div class="flex-1 w-full flex items-center justify-center p-6 md:p-10 relative">
-  <!-- Background decorative -->
-  <div class="absolute inset-0 pointer-events-none opacity-[0.04]" style="background-image: radial-gradient(var(--c-brown-deep) 1px, transparent 1px); background-size: 24px 24px;"></div>
-  
-  <div class="relative w-full max-w-6xl">
-    <!-- WAITING STATE - Título evento centrado grande + icono cuadrado -->
-    <div id="waitingState" class="card p-10 md:p-16 text-center">
-      <div class="flex flex-col items-center justify-center gap-8">
-        <!-- Square icon / image -->
-        <div id="eventIconContainer" class="flex justify-center">
-          <div id="eventSquare" class="event-square w-[112px] h-[112px] text-[42px] rounded-[28px]">
-            <span id="eventInitials">SM</span>
-            <img id="eventImage" class="hidden w-full h-full object-cover" alt="Evento">
+<body class="min-h-screen bg-cream text-brownDeep flex flex-col overflow-hidden">
+<!-- Main display -->
+<div class="flex-1 w-full flex items-center justify-center p-6 md:p-10 lg:p-14 relative">
+  <div class="absolute inset-0 pointer-events-none opacity-[0.035]" style="background-image: radial-gradient(var(--c-brown-deep) 1px, transparent 1px); background-size: 28px 28px;"></div>
+  <div class="relative w-full max-w-[1280px]">
+    <!-- WAITING / EVENTO - imagen al costado en pantallas grandes, desaparece en móvil y si no hay imagen -->
+    <div id="waitingState" class="w-full">
+      <div class="flex flex-col lg:flex-row gap-10 lg:gap-16 items-center lg:items-start">
+        
+        <!-- Texto evento - izquierda -->
+        <div class="flex-1 space-y-6 lg:space-y-8 text-center lg:text-left">
+          <div class="space-y-4">
+            <h1 id="eventTitle" class="font-display font-black text-[clamp(2.8rem,6vw,5.5rem)] leading-[0.85] tracking-[-0.03em] text-brownDeep">
+              Esperando evento...
+            </h1>
+            <p id="eventDesc" class="text-[clamp(1rem,1.8vw,1.25rem)] leading-snug opacity-60 max-w-2xl mx-auto lg:mx-0"></p>
+            <div id="eventMeta" class="flex justify-center lg:justify-start gap-2 flex-wrap pt-2">
+              <span id="eventDate" class="hidden badge badge-cream text-[11px]"></span>
+              <span id="eventStatus" class="hidden"></span>
+            </div>
+          </div>
+          <!-- Mensaje bienvenida del evento - ESTE PERMANECE siempre, aunque bienvenida ingresantes esté apagada -->
+          <div class="pt-8 border-t border-brownDeep/5">
+            <p class="text-[11px] font-black tracking-widest opacity-30 mb-3">BIENVENIDOS</p>
+            <p id="waitingMessage" class="font-display font-black text-[clamp(1.8rem,3.2vw,2.8rem)] leading-[1.05] tracking-tight">¡Bienvenidos a la Feria!</p>
+            <p class="text-sm opacity-40 mt-4 max-w-xl mx-auto lg:mx-0">La bienvenida a cada familia aparecerá aquí cuando escaneen su QR</p>
           </div>
         </div>
-        <!-- Título centrado y más grande -->
-        <div class="space-y-4 max-w-4xl">
-          <h1 id="eventTitle" class="font-display font-black text-[clamp(2.5rem,6vw,5.5rem)] leading-[0.85] tracking-tight text-brownDeep">
-            Esperando evento...
-          </h1>
-          <p id="eventDesc" class="text-[clamp(1rem,2vw,1.25rem)] leading-snug opacity-60 max-w-2xl mx-auto"></p>
-          <div id="eventMeta" class="flex justify-center gap-2 flex-wrap pt-2">
-            <span id="eventDate" class="badge badge-cream"></span>
-            <span id="eventStatus" class="badge badge-amber">En vivo</span>
+        <!-- Imagen cuadrada - DERECHA en pantallas grandes, desaparece en celular y si no hay imagen (incluso iniciales) -->
+        <div id="eventIconContainer" class="hidden">
+          <div id="eventSquare" class="w-[280px] h-[280px] lg:w-[360px] lg:h-[360px] rounded-[32px] overflow-hidden bg-cream2 border border-brownDeep/5 shadow-soft shrink-0">
+            <img id="eventImage" class="w-full h-full object-cover" alt="Evento">
+            <!-- iniciales ocultas por requerimiento - si no hay imagen, todo el contenedor desaparece -->
+            <span id="eventInitials" class="hidden"></span>
           </div>
-        </div>
-        <!-- Mensaje espera -->
-        <div class="pt-8 border-t border-brownDeep/5 w-full">
-          <p id="waitingMessage" class="text-2xl md:text-3xl font-bold opacity-30">Esperando ingresos...</p>
-          <p class="text-sm opacity-40 mt-3">La bienvenida aparecerá aquí automáticamente cuando escaneen QR</p>
         </div>
       </div>
     </div>
-    <!-- WELCOME CARD -->
-    <div id="welcomeCard" class="hidden card p-10 md:p-14 overflow-hidden relative">
-      <div class="absolute top-0 right-0 w-64 h-64 bg-amber/20 rounded-full blur-[60px] -translate-y-32 translate-x-32"></div>
-      <div class="absolute bottom-0 left-0 w-80 h-80 bg-cyan/10 rounded-full blur-[60px] translate-y-32 -translate-x-32"></div>
-      
-      <div class="relative flex flex-col md:flex-row gap-10 items-start">
-        <!-- Avatar / initials -->
-        <div id="welcomeAvatar" class="event-square w-[120px] h-[120px] text-4xl bg-brownDeep text-cream shrink-0">👋</div>
+    <!-- WELCOME INGRESANTE - solo cuando bienvenida de ingresantes está ON -->
+    <div id="welcomeCard" class="hidden w-full">
+      <div class="card p-10 md:p-14 lg:p-16 overflow-hidden relative border-brownDeep/10">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-amber/15 rounded-full blur-[80px] -translate-y-48 translate-x-48 pointer-events-none"></div>
         
-        <div class="flex-1 space-y-6">
+        <div class="relative space-y-8 max-w-4xl mx-auto text-center lg:text-left">
           <div>
-            <p class="badge badge-brown mb-4">● BIENVENIDO</p>
-            <h2 id="welcomeTitle" class="font-display font-black text-[clamp(2rem,5vw,4.5rem)] leading-[0.9]"></h2>
-            <p id="welcomeSubtitle" class="mt-4 text-xl opacity-70"></p>
-            <p id="welcomeEvent" class="mt-2 badge badge-amber"></p>
+            <p class="text-[11px] font-black tracking-[0.2em] opacity-30 mb-4">INGRESO REGISTRADO</p>
+            <h2 id="welcomeTitle" class="font-display font-black text-[clamp(2.5rem,5vw,4.5rem)] leading-[0.9] tracking-tight"></h2>
+            <p id="welcomeSubtitle" class="mt-4 text-xl opacity-60"></p>
           </div>
           
-          <div class="bg-cream2 rounded-[20px] p-6 md:p-8 border border-brownDeep/5">
-            <p id="welcomeMsg" class="font-display text-[clamp(1.5rem,3vw,2.5rem)] leading-tight font-black"></p>
+          <div class="bg-cream2 rounded-[24px] p-8 md:p-10 border border-brownDeep/5">
+            <p id="welcomeMsg" class="font-display text-[clamp(1.6rem,3vw,2.6rem)] leading-tight font-black"></p>
           </div>
-          <div class="flex gap-2">
-            <span id="welcomeId" class="badge badge-cream font-mono text-[10px]"></span>
-            <span id="welcomeTime" class="text-xs opacity-40"></span>
+          <div class="flex justify-center lg:justify-start gap-3 text-[11px] opacity-30 font-mono">
+            <span id="welcomeId"></span>
+            <span>•</span>
+            <span id="welcomeTime"></span>
           </div>
         </div>
       </div>
     </div>
-    <!-- PAUSED STATE -->
-    <div id="pausedState" class="hidden card p-12 text-center bg-brownDeep text-cream">
-      <div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6 text-2xl">⏸️</div>
-      <h3 class="text-3xl font-black">Bienvenida pausada</h3>
-      <p class="opacity-60 mt-3">Los ingresos se siguen registrando pero no se muestran en pantalla. Activa el toggle arriba para reanudar.</p>
-      <p id="pausedQueue" class="mt-6 badge badge-amber"></p>
+    <!-- Paused state ya no se usa como pantalla completa - solo badge en bottom bar -->
+    <div id="pausedState" class="hidden"></div>
+  </div>
+</div>
+<!-- Bottom bar - configuración pequeña abajo -->
+<div class="w-full bg-white/80 backdrop-blur-xl border-t border-brownDeep/5 px-4 md:px-8 py-3 flex flex-wrap justify-between items-center gap-3 text-[11px] sticky bottom-0 z-20">
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+      <span id="liveLabel" class="font-bold tracking-widest opacity-60">EN VIVO</span>
+      <span id="queueBadge" class="hidden badge badge-brown text-[10px]"></span>
+      <span id="pausedBadge" class="hidden badge badge-cream text-[10px]">Bienvenida ingresantes pausada</span>
     </div>
+  </div>
+  <div class="flex items-center gap-5 flex-wrap">
+    <!-- Toggle bienvenida ingresantes - solo apaga ingresantes, no el texto del evento -->
+    <div class="flex items-center gap-2">
+      <span class="font-bold tracking-widest opacity-40">BIENVENIDA INGRESANTES</span>
+      <div id="welcomeToggle" class="toggle active scale-90" title="Apagar / Encender solo bienvenida de ingresantes">
+        <div class="toggle-knob"></div>
+      </div>
+    </div>
+    <div class="w-px h-4 bg-brownDeep/10 hidden md:block"></div>
+    <button id="voiceToggle" class="btn-ghost text-[11px] py-1.5 px-3">🔇 Sonido</button>
+    <button id="btnResultados" class="btn-ghost text-[11px] py-1.5 px-3">🏆 Resultados</button>
+    <button id="btnFullscreen" class="btn-ghost text-[11px] py-1.5 px-3">⛶ Pantalla completa</button>
   </div>
 </div>
 <script>
 let isShowing=false, localQueue=[], voiceEnabled=localStorage.getItem('voice_enabled')==='true';
-let welcomeEnabled = localStorage.getItem('welcome_enabled') !== 'false'; // true por defecto
+let welcomeEnabled = localStorage.getItem('welcome_enabled') !== 'false';
 let activeEvent=null;
-const waitingState=document.getElementById('waitingState'), welcomeCard=document.getElementById('welcomeCard'), pausedState=document.getElementById('pausedState');
-const eventTitle=document.getElementById('eventTitle'), eventDesc=document.getElementById('eventDesc'), eventSquare=document.getElementById('eventSquare'), eventImage=document.getElementById('eventImage'), eventInitials=document.getElementById('eventInitials'), eventTag=document.getElementById('eventTag'), eventDate=document.getElementById('eventDate'), waitingMessage=document.getElementById('waitingMessage'), queueBadge=document.getElementById('queueBadge');
-const welcomeTitle=document.getElementById('welcomeTitle'), welcomeSubtitle=document.getElementById('welcomeSubtitle'), welcomeEvent=document.getElementById('welcomeEvent'), welcomeMsg=document.getElementById('welcomeMsg'), welcomeId=document.getElementById('welcomeId'), welcomeTime=document.getElementById('welcomeTime'), welcomeAvatar=document.getElementById('welcomeAvatar');
-const welcomeToggle=document.getElementById('welcomeToggle');
-function getVoice(){const v=speechSynthesis.getVoices(); return v.find(x=>x.lang==='es-PE')||v[0];}
+const waitingState=document.getElementById('waitingState'), welcomeCard=document.getElementById('welcomeCard');
+const eventTitle=document.getElementById('eventTitle'), eventDesc=document.getElementById('eventDesc'), eventDate=document.getElementById('eventDate'), waitingMessage=document.getElementById('waitingMessage');
+const eventImage=document.getElementById('eventImage'), eventIconContainer=document.getElementById('eventIconContainer');
+const welcomeTitle=document.getElementById('welcomeTitle'), welcomeSubtitle=document.getElementById('welcomeSubtitle'), welcomeMsg=document.getElementById('welcomeMsg'), welcomeId=document.getElementById('welcomeId'), welcomeTime=document.getElementById('welcomeTime');
+const welcomeToggle=document.getElementById('welcomeToggle'), queueBadge=document.getElementById('queueBadge'), pausedBadge=document.getElementById('pausedBadge');
 function updateToggleUI(){
-  if(welcomeEnabled){
-    welcomeToggle.classList.add('active');
-  } else {
-    welcomeToggle.classList.remove('active');
-  }
+  if(welcomeEnabled){ welcomeToggle.classList.add('active'); pausedBadge.classList.add('hidden'); }
+  else { welcomeToggle.classList.remove('active'); pausedBadge.classList.remove('hidden'); }
+  document.getElementById('voiceToggle').textContent = voiceEnabled ? '🔊 Sonido ON' : '🔇 Sonido';
+}
+function getVoice(){
+  const voices=speechSynthesis.getVoices();
+  return voices.find(v=>v.lang.includes('es')) || null;
 }
 async function loadActiveEvent(){
-  const client = window.initSupabaseClient ? window.initSupabaseClient() : window.supabaseClient;
-  if(!client){ eventTag.textContent='Error cliente'; return null; }
-  const {data, error} = await client.from('events').select('*').eq('activo', true).order('created_at',{ascending:false}).limit(1).single();
-  if(error || !data){ 
-    eventTag.textContent='Sin evento'; 
-    eventTitle.textContent='No hay evento activo';
-    waitingMessage.textContent='Configura un evento en admin.html';
-    return null; 
-  }
-  activeEvent=data;
-  eventTag.textContent=data.nombre;
-  eventTag.className='badge badge-amber';
-  
-  // Título centrado grande
-  eventTitle.textContent=data.nombre;
-  eventDesc.textContent=data.descripcion||'';
-  if(data.fecha){ eventDate.textContent=new Date(data.fecha).toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long'}); eventDate.classList.remove('hidden'); }
-  
-  // Imagen cuadrada del evento - si no hay, usa iniciales y ocupa espacio con otros elementos
-  const imgUrl = data.imagen_url || data.image_url || data.logo_url || data.photo_url || null;
-  const iconContainer = document.getElementById('eventIconContainer');
-  if(imgUrl){
-    eventImage.src=imgUrl;
-    eventImage.classList.remove('hidden');
-    eventInitials.classList.add('hidden');
-    iconContainer.classList.remove('hidden');
-  } else {
-    // Si no hay imagen, mostrar iniciales del evento
-    const initials = data.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    eventInitials.textContent=initials||'SM';
-    eventImage.classList.add('hidden');
-    eventInitials.classList.remove('hidden');
-    iconContainer.classList.remove('hidden');
-    // Si quieres que ocupe espacio con otros elementos cuando no hay imagen, puedes ocultar el contenedor:
-    // iconContainer.classList.add('hidden'); // descomenta para ocupar espacio
-  }
-  
-  waitingMessage.textContent=data.mensaje_bienvenida || '¡Bienvenidos a la Feria!';
-  return data;
+  try{
+    const client = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const {data, error} = await client.from('events').select('*').eq('activo', true).limit(1).single();
+    if(error || !data){ eventTitle.textContent='No hay evento activo'; return null; }
+    
+    eventTitle.textContent=data.nombre;
+    eventDesc.textContent=data.descripcion||'';
+    if(data.fecha){ eventDate.textContent=new Date(data.fecha).toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long'}); eventDate.classList.remove('hidden'); }
+    
+    // IMAGEN: solo mostrar si hay imagen, al costado en pantallas grandes (flex lg), oculta en móvil, sin iniciales si no hay imagen
+    const imgUrl = data.imagen_url || data.image_url || data.logo_url || data.photo_url || null;
+    if(imgUrl){
+      eventImage.src=imgUrl;
+      // Mostrar solo en pantallas grandes (md en adelante), ocultar en móvil con clases Tailwind
+      eventIconContainer.className = 'hidden md:flex shrink-0';
+      eventIconContainer.classList.remove('hidden');
+    } else {
+      // Si no hay imagen, desaparecer completamente incluso iniciales
+      eventIconContainer.className = 'hidden';
+      eventIconContainer.classList.add('hidden');
+    }
+    
+    waitingMessage.textContent=data.mensaje_bienvenida || '¡Bienvenidos a la Feria!';
+    return data;
+  }catch(err){ console.error(err); return null; }
 }
 function showWelcome(reg){
   if(!welcomeEnabled){
@@ -185,34 +172,28 @@ function showWelcome(reg){
   }
   isShowing=true; 
   waitingState.classList.add('hidden'); 
-  pausedState.classList.add('hidden');
   welcomeCard.classList.remove('hidden');
   
   welcomeTitle.textContent = `${reg.nombres} ${reg.apellidos}`;
   welcomeSubtitle.textContent = `${reg.parentesco||''} ${reg.nombre_estudiante? 'de ' + reg.nombre_estudiante : ''}`.trim();
-  welcomeEvent.textContent = activeEvent?.nombre || '';
   welcomeMsg.textContent = (activeEvent?.mensaje_bienvenida || '¡Qué alegría que estés aquí!').replace('[NOMBRE]', reg.nombres);
   welcomeId.textContent = reg.id.slice(0,8);
   welcomeTime.textContent = new Date().toLocaleTimeString();
-  welcomeAvatar.textContent = reg.nombres[0]?.toUpperCase() || '👋';
-  // Confetti con paleta
-  for(let k=0;k<2;k++) setTimeout(()=>{for(let i=0;i<20;i++){const c=document.createElement('div'); c.className='absolute w-3 h-3 rounded-full'; c.style.left=Math.random()*100+'%'; c.style.top='5%'; c.style.background=['#ffba08','#fe1954','#04bdcf','#ffd81b'][Math.floor(Math.random()*4)]; document.body.appendChild(c); c.animate([{transform:'translateY(0) rotate(0)',opacity:1},{transform:`translateY(${window.innerHeight}px) rotate(720deg)`,opacity:0}],{duration:3000+Math.random()*1000,fill:'forwards'}); setTimeout(()=>c.remove(),4000);}},k*200);
+  // Confetti sutil
+  for(let k=0;k<2;k++) setTimeout(()=>{for(let i=0;i<16;i++){const c=document.createElement('div'); c.className='absolute w-2.5 h-2.5 rounded-full'; c.style.left=Math.random()*100+'%'; c.style.top='2%'; c.style.background=['#ffba08','#fe1954','#04bdcf'][Math.floor(Math.random()*3)]; document.body.appendChild(c); c.animate([{transform:'translateY(0) rotate(0)',opacity:1},{transform:`translateY(${window.innerHeight}px) rotate(720deg)`,opacity:0}],{duration:3000+Math.random()*1000,fill:'forwards'}); setTimeout(()=>c.remove(),4000);}},k*200);
   const duration = (activeEvent?.welcome_duration_seconds || 8) * 1000;
   const delayBeforeNext = activeEvent?.welcome_delay_seconds || 0;
   let voiceDone=!voiceEnabled, minDone=false;
   function finish(){ 
     if(voiceDone && minDone){ 
       welcomeCard.classList.add('hidden'); 
-      if(localQueue.length>0){
+      if(localQueue.length>0 && welcomeEnabled){
         const n=localQueue.shift(); 
         updateQueueBadge();
         setTimeout(()=>showWelcome(n), delayBeforeNext*1000 || 600);
       } else{ 
-        if(welcomeEnabled){
-          waitingState.classList.remove('hidden'); 
-        } else {
-          pausedState.classList.remove('hidden');
-        }
+        // Volver siempre al estado de evento - el texto del evento permanece
+        waitingState.classList.remove('hidden'); 
         isShowing=false; 
       } 
     } 
@@ -227,8 +208,7 @@ function showWelcome(reg){
 function updateQueueBadge(){
   if(localQueue.length>0){
     queueBadge.classList.remove('hidden');
-    queueBadge.textContent=localQueue.length + ' en espera';
-    document.getElementById('pausedQueue').textContent = localQueue.length + ' ingresos en cola';
+    queueBadge.textContent=localQueue.length + ' en cola';
   } else {
     queueBadge.classList.add('hidden');
   }
@@ -236,10 +216,9 @@ function updateQueueBadge(){
 async function init(){
   updateToggleUI();
   const client = window.initSupabaseClient ? window.initSupabaseClient() : null;
-  if(!client){ eventTag.textContent='Error config.js'; return; }
+  if(!client){ return; }
   activeEvent = await loadActiveEvent();
   if(!activeEvent) return;
-  // Suscripción Realtime
   client.channel('registrations-checkins')
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'registrations', filter:`event_id=eq.${activeEvent.id}`}, payload=>{
       const reg = payload.new;
@@ -247,11 +226,7 @@ async function init(){
         if(isShowing || !welcomeEnabled){ 
           localQueue.push(reg); 
           updateQueueBadge();
-          if(!welcomeEnabled){
-            pausedState.classList.remove('hidden');
-            waitingState.classList.add('hidden');
-            welcomeCard.classList.add('hidden');
-          }
+          // Si bienvenida apagada, NO ocultar waitingState - el texto del evento permanece
         }
         else{
           const delay = activeEvent.welcome_delay_seconds || 0;
@@ -260,34 +235,36 @@ async function init(){
       }
     }).subscribe();
 }
-// Toggle bienvenida on/off
 welcomeToggle.addEventListener('click', ()=>{
   welcomeEnabled = !welcomeEnabled;
   localStorage.setItem('welcome_enabled', welcomeEnabled);
   updateToggleUI();
   if(welcomeEnabled){
-    pausedState.classList.add('hidden');
-    if(!isShowing){
-      if(localQueue.length>0){
-        const n=localQueue.shift();
-        updateQueueBadge();
-        showWelcome(n);
-      } else {
-        waitingState.classList.remove('hidden');
-      }
+    if(!isShowing && localQueue.length>0){
+      const n=localQueue.shift();
+      updateQueueBadge();
+      showWelcome(n);
     }
   } else {
+    // Al apagar, no mostrar paused screen, solo mantener waitingState visible
     if(!isShowing){
-      waitingState.classList.add('hidden');
+      waitingState.classList.remove('hidden');
       welcomeCard.classList.add('hidden');
-      pausedState.classList.remove('hidden');
     }
   }
 });
 document.getElementById('voiceToggle').addEventListener('click', ()=>{
   if(!voiceEnabled){ voiceEnabled=true; localStorage.setItem('voice_enabled','true'); speechSynthesis.speak(new SpeechSynthesisUtterance('Sonido activado')); }
   else{ voiceEnabled=false; localStorage.removeItem('voice_enabled'); speechSynthesis.cancel(); }
-  document.getElementById('voiceToggle').textContent = voiceEnabled ? '🔊 Sonido ON' : '🔇 Sonido';
+  updateToggleUI();
+});
+document.getElementById('btnResultados').addEventListener('click', ()=>{
+  const eventId = activeEvent?.id ? `?event=${activeEvent.id}` : '';
+  window.open(`resultados.html${eventId}`,'_blank');
+});
+document.getElementById('btnFullscreen').addEventListener('click', ()=>{
+  if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(()=>{}); }
+  else { document.exitFullscreen(); }
 });
 window.addEventListener('load', init);
 </script>
