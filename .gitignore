@@ -1,0 +1,15 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+config.local.js
+credentials.json
+token.json
+service-account*.json
+*.pem
+*.key
+INSTRUCCIONES*
+schema.sql
+README-DESDE-CERO.md
+edge*
+README.md

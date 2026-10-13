@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reserva entrada</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="config.js"></script>
+</head>
+<body class="min-h-screen bg-[#020617] text-white flex items-center justify-center p-4">
+<div class="w-full max-w-5xl grid lg:grid-cols-2 gap-6">
+  <div class="bg-white/[0.05] border border-white/10 rounded-[32px] p-8">
+    <div id="eventInfo">Cargando evento...</div>
+  </div>
+  <div class="bg-[#0e1428]/90 border border-white/10 rounded-[32px] p-8">
+    <div id="stepEmail">
+      <h2 class="text-2xl font-bold">Reserva tu entrada</h2>
+      <input id="emailCheck" type="email" placeholder="tu@correo.com" class="mt-4 w-full rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-4">
+      <button id="btnVerificar" class="mt-4 w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">Continuar</button>
+      <div id="emailStatus" class="hidden mt-4 p-4 rounded-2xl text-sm"></div>
+    </div>
+    <div id="stepForm" class="hidden">
+      <h2 class="text-2xl font-bold">Completa tus datos</h2>
+      <p class="text-sm text-white/50">Correo: <span id="verifiedEmail" class="text-white font-bold"></span></p>
+      <form id="registrationForm" class="mt-6 grid gap-4">
+        <div class="grid grid-cols-2 gap-3"><input id="nombres" required placeholder="Nombres" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3"><input id="apellidos" required placeholder="Apellidos" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3"></div>
+        <input id="nombreEstudiante" required placeholder="Nombre estudiante" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3">
+        <input id="dni" required pattern="[0-9]{8}" maxlength="8" placeholder="DNI adulto 8 dígitos" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3">
+        <div class="grid grid-cols-2 gap-3"><input id="gradoSeccion" required placeholder="Grado" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3"><input id="parentesco" required placeholder="Parentesco" class="rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3"></div>
+        <button id="btnEnviar" type="submit" class="w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">Reservar mi entrada</button>
+        <div id="formStatus" class="hidden p-4 rounded-2xl text-sm"></div>
+      </form>
+    </div>
+    <div id="stepExists" class="hidden text-center">
+      <h2 class="text-2xl font-bold">¡Ya tienes entrada!</h2>
+      <div id="qrExists" class="mt-4 flex justify-center bg-white p-4 rounded-2xl"></div>
+      <p id="existsId" class="mt-4 font-black text-sky-300"></p>
+      <button id="btnReenviar" class="mt-6 w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">Reenviar QR a mi correo</button>
+    </div>
+  </div>
+</div>
+<div id="qrHidden" class="hidden"></div>
+<script>
+let activeEvent=null, currentEmail="";
+async function loadActiveEvent(){
+  const {data, error} = await supabase.from('events').select('*').eq('activo',true).limit(1).single();
+  if(error || !data){ document.getElementById('eventInfo').innerHTML='No hay inscripciones abiertas'; return; }
+  activeEvent=data;
+  document.getElementById('eventInfo').innerHTML=`<div class="inline-flex bg-emerald-500/15 text-emerald-300 px-3 py-1 rounded-full text-xs font-bold">● Inscripciones abiertas</div><h1 class="text-4xl font-extrabold mt-4">${data.nombre}</h1><p class="text-white/50 mt-3 text-sm">${data.descripcion||''}</p><div class="mt-6 bg-white/[0.04] border border-white/5 rounded-2xl p-5"><p class="text-white/80 text-sm">${data.mensaje_bienvenida||''}</p></div>`;
+}
+
+function showStatus(el, t, type){
+  el.classList.remove('hidden');
+  el.className='mt-4 p-4 rounded-2xl text-sm '+(type==='success'?'bg-emerald-500/10 border border-emerald-500/20 text-emerald-200':type==='error'?'bg-red-500/10 border border-red-500/20 text-red-200':'bg-sky-500/10 border border-sky-500/20 text-sky-200');
+  el.textContent=t;
+}
+
+async function checkEmail(){
+  const email=document.getElementById('emailCheck').value.trim().toLowerCase();
+  const status=document.getElementById('emailStatus');
+  if(!email.includes('@')){ showStatus(status,'Correo inválido','error'); return; }
+  const {data, error} = await supabase.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', email).single();
+  if(data){
+    currentEmail=email;
+    document.getElementById('stepEmail').classList.add('hidden');
+    document.getElementById('stepExists').classList.remove('hidden');
+    document.getElementById('existsId').textContent='ID: '+data.id;
+    document.getElementById('qrExists').innerHTML='';
+    new QRCode(document.getElementById('qrExists'), {text: data.id, width:200, height:200});
+  }else{
+    currentEmail=email;
+    document.getElementById('verifiedEmail').textContent=email;
+    document.getElementById('stepEmail').classList.add('hidden');
+    document.getElementById('stepForm').classList.remove('hidden');
+  }
+}
+
+async function register(e){
+  e.preventDefault();
+  const status=document.getElementById('formStatus');
+  const payload={
+    event_id: activeEvent.id,
+    nombres: document.getElementById('nombres').value.trim(),
+    apellidos: document.getElementById('apellidos').value.trim(),
+    nombre_estudiante: document.getElementById('nombreEstudiante').value.trim(),
+    dni: document.getElementById('dni').value.trim(),
+    grado_seccion: document.getElementById('gradoSeccion').value.trim(),
+    parentesco: document.getElementById('parentesco').value.trim(),
+    email: currentEmail,
+  };
+  showStatus(status,'Reservando...','');
+  const {data, error} = await supabase.from('registrations').insert(payload).select().single();
+  if(error){
+    if(error.code==='23505') showStatus(status,'Ya tienes entrada con ese correo','error');
+    else showStatus(status,error.message,'error');
+    return;
+  }
+  showStatus(status,`¡Reserva lista! ID: ${data.id} - Te enviamos QR a ${data.email}`,'success');
+  // Generar QR y enviar por Edge Function
+  document.getElementById('qrHidden').innerHTML='';
+  new QRCode(document.getElementById('qrHidden'), {text: data.id, width:300, height:300});
+  setTimeout(async ()=>{
+    const qrCanvas = document.querySelector('#qrHidden canvas');
+    const qrDataUrl = qrCanvas ? qrCanvas.toDataURL() : '';
+    // Llama a Edge Function para email (si la configuraste)
+    try{
+      await fetch(EDGE_FUNCTION_URL, {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${SUPABASE_ANON_KEY}`}, body: JSON.stringify({email: data.email, id: data.id, nombre: data.nombres+' '+data.apellidos, evento: activeEvent.nombre, qrDataUrl})});
+    }catch(err){ console.log('Email no enviado, Edge Function no configurada', err); }
+  }, 500);
+}
+
+document.getElementById('btnVerificar').addEventListener('click', checkEmail);
+document.getElementById('registrationForm').addEventListener('submit', register);
+window.addEventListener('load', loadActiveEvent);
+</script>
+</body>
+</html>

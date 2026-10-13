@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Votación</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+</head>
+<body class="min-h-screen bg-[#071114] text-white p-4">
+<main class="mx-auto max-w-3xl">
+<header class="border-b border-white/10 pb-5"><h1 class="text-3xl font-extrabold">Votación de proyectos</h1><p id="identityLabel" class="text-white/55 text-sm mt-2">Verificando...</p></header>
+<section id="loginPanel" class="mt-6"><form id="loginForm" class="grid gap-4 max-w-lg"><input id="emailInput" type="email" required placeholder="tu@correo.com" class="rounded-xl bg-white/[0.06] border border-white/15 px-4 py-3"><input id="dniInput" required pattern="[0-9]{8}" maxlength="8" placeholder="DNI 8 dígitos" class="rounded-xl bg-white/[0.06] border border-white/15 px-4 py-3"><button class="bg-teal-300 text-black font-extrabold py-3 rounded-xl">Continuar</button><p id="loginMessage" class="hidden p-3 rounded-xl text-sm"></p></form></section>
+<section id="votePanel" class="hidden mt-6"><div id="attendanceMessage" class="p-4 rounded-xl bg-teal-300/10 border border-teal-300/20 text-sm"></div><div id="gradeList" class="mt-6 grid gap-8"></div></section>
+</main>
+<script>
+let voter=null, activeEvent=null, categories=[], myVotes={};
+
+async function loadActiveEvent(){
+  const {data} = await supabase.from('events').select('*').eq('activo',true).limit(1).single();
+  activeEvent=data; return data;
+}
+
+async function authenticate(email,dni){
+  if(!activeEvent) await loadActiveEvent();
+  const {data: reg, error} = await supabase.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', email.toLowerCase()).eq('dni', dni).eq('estado','INGRESADO').single();
+  if(error || !reg){ document.getElementById('loginMessage').textContent='No encontramos ingreso validado con ese correo y DNI. Pasa por scanner.'; document.getElementById('loginMessage').classList.remove('hidden'); return false; }
+  voter=reg;
+  const {data: votes} = await supabase.from('votes').select('category_id').eq('registration_id', voter.id);
+  myVotes={}; votes?.forEach(v=>myVotes[v.category_id]=true);
+  document.getElementById('loginPanel').classList.add('hidden');
+  document.getElementById('votePanel').classList.remove('hidden');
+  document.getElementById('identityLabel').textContent=`Entrada validada: ${voter.email}`;
+  await loadCategories();
+  return true;
+}
+
+async function loadCategories(){
+  const {data: cats} = await supabase.from('categories').select('*').eq('event_id', activeEvent.id).order('orden');
+  const {data: projs} = await supabase.from('projects').select('*').eq('event_id', activeEvent.id).eq('activo',true).order('orden');
+  categories = cats.map(c=>({...c, projects: projs.filter(p=>p.category_id===c.id)}));
+  render();
+}
+
+function render(){
+  const list=document.getElementById('gradeList'); list.innerHTML='';
+  categories.forEach(cat=>{
+    const voted = myVotes[cat.id];
+    const sec=document.createElement('section'); sec.className='border-t border-white/10 pt-5';
+    sec.innerHTML=`<div class="flex justify-between"><h2 class="text-xl font-extrabold">${cat.label}</h2><span class="text-xs font-bold ${voted?'text-emerald-300':cat.votacion_abierta?'text-teal-300':'text-white/40'}">${voted?'VOTO REGISTRADO':cat.votacion_abierta?'ABIERTA':'EN ESPERA'}</span></div>`;
+    if(voted){ sec.innerHTML+='<p class="mt-3 text-sm text-white/55">Ya votaste en esta categoría.</p>'; }
+    else if(cat.votacion_abierta){
+      const grid=document.createElement('div'); grid.className='mt-4 grid gap-3 sm:grid-cols-2';
+      cat.projects.forEach(p=>{
+        const card=document.createElement('article'); card.className='rounded-xl border border-white/10 bg-white/[0.04] p-4';
+        card.innerHTML=`${p.photo_url?`<img src="${p.photo_url}" class="w-full aspect-[16/9] object-cover rounded-lg mb-3">`:''}<h3 class="font-bold">${p.title}</h3><p class="text-sm text-white/55">${p.team||''}</p><button class="mt-3 w-full bg-teal-300 text-black font-bold py-2 rounded-lg">Votar</button>`;
+        card.querySelector('button').onclick=()=>castVote(cat,p);
+        grid.appendChild(card);
+      });
+      sec.appendChild(grid);
+    } else sec.innerHTML+='<p class="mt-3 text-sm text-white/45">Votación cerrada por el momento.</p>';
+    list.appendChild(sec);
+  });
+}
+
+async function castVote(cat, proj){
+  if(!confirm(`¿Confirmas voto por "${proj.title}" en ${cat.label}?`)) return;
+  const {error} = await supabase.from('votes').insert({event_id: activeEvent.id, category_id: cat.id, project_id: proj.id, registration_id: voter.id, voter_email: voter.email});
+  if(error){ alert(error.message.includes('duplicate')?'Ya votaste en esta categoría':'Error: '+error.message); return; }
+  myVotes[cat.id]=true; render();
+}
+
+document.getElementById('loginForm').addEventListener('submit', async e=>{ e.preventDefault(); await authenticate(document.getElementById('emailInput').value.trim(), document.getElementById('dniInput').value.trim()); });
+window.addEventListener('load', loadActiveEvent);
+</script>
+</body>
+</html>

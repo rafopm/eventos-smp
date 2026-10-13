@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Panel - Eventos Generico</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+</head>
+<body class="min-h-screen bg-[#10130c] text-white p-6">
+<main class="max-w-6xl mx-auto">
+<h1 class="text-3xl font-extrabold">Panel Admin - Sistema Genérico</h1>
+
+<section class="mt-8 grid lg:grid-cols-2 gap-6">
+<div class="bg-white/[0.05] border border-white/10 rounded-2xl p-6">
+<h2 class="font-bold text-lg">Crear / Editar Evento</h2>
+<form id="eventForm" class="mt-4 grid gap-3">
+<input type="hidden" id="eventId">
+<input id="evNombre" required placeholder="Nombre evento" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<textarea id="evDesc" placeholder="Descripción" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3"></textarea>
+<input id="evFecha" type="date" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<textarea id="evMensaje" placeholder="Mensaje bienvenida display" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3"></textarea>
+<div class="grid grid-cols-2 gap-3">
+<label class="text-xs">Delay bienvenida (seg)<input id="evDelay" type="number" value="0" min="0" max="10" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></label>
+<label class="text-xs">Duración bienvenida (seg)<input id="evDuracion" type="number" value="9" min="3" max="20" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></label>
+</div>
+<label class="flex gap-2 text-sm"><input id="evActivo" type="checkbox"> Evento activo (solo uno activo)</label>
+<button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Guardar evento</button>
+</form>
+</div>
+
+<div class="bg-white/[0.05] border border-white/10 rounded-2xl p-6">
+<h2 class="font-bold text-lg">Eventos</h2>
+<div id="eventList" class="mt-4 grid gap-2"></div>
+</div>
+</section>
+
+<section id="detailSection" class="hidden mt-8 bg-white/[0.05] border border-white/10 rounded-2xl p-6">
+<h2 class="font-bold text-xl">Configuración: <span id="selectedEventName"></span></h2>
+<div class="mt-6 grid lg:grid-cols-2 gap-6">
+<div>
+<h3 class="font-bold">Categorías (ej: grados, tipos de proyecto)</h3>
+<form id="catForm" class="mt-3 flex gap-2"><input id="catKey" required placeholder="key: ej secundaria" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"><input id="catLabel" required placeholder="Label: Ej 3° Sec" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"><button class="bg-white text-black px-4 rounded-xl font-bold">+</button></form>
+<div id="catList" class="mt-4 grid gap-2"></div>
+</div>
+<div>
+<h3 class="font-bold">Proyectos</h3>
+<form id="projForm" class="mt-3 grid gap-2">
+<select id="projCat" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></select>
+<input id="projTitle" required placeholder="Título proyecto" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
+<input id="projTeam" placeholder="Equipo / integrantes" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
+<input id="projPhoto" placeholder="URL foto (opcional)" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
+<button class="bg-white text-black font-bold py-2 rounded-xl">Agregar proyecto</button>
+</form>
+<div id="projList" class="mt-4 grid gap-2"></div>
+</div>
+</div>
+
+<div class="mt-8">
+<h3 class="font-bold">Control votación + registros</h3>
+<div id="voteControls" class="mt-3"></div>
+<div class="mt-6">
+<h4 class="font-bold text-sm text-white/60">Registros / Ingresos</h4>
+<div id="regList" class="mt-2 max-h-96 overflow-auto grid gap-1 text-sm"></div>
+</div>
+</div>
+</section>
+
+</main>
+<script>
+let selectedEventId=null;
+
+async function loadEvents(){
+  const {data} = await supabase.from('events').select('*').order('created_at',{ascending:false});
+  const list=document.getElementById('eventList'); list.innerHTML='';
+  data.forEach(ev=>{
+    const div=document.createElement('div'); div.className='flex justify-between items-center p-3 rounded-xl bg-white/[0.04] border border-white/10';
+    div.innerHTML=`<div><p class="font-bold">${ev.nombre} ${ev.activo?'● ACTIVO':''}</p><p class="text-xs text-white/50">Delay ${ev.welcome_delay_seconds}s / Dur ${ev.welcome_duration_seconds}s</p></div><div class="flex gap-2"><button class="text-xs bg-white text-black px-3 py-1 rounded-lg font-bold" onclick="selectEvent('${ev.id}')">Configurar</button><button class="text-xs bg-white/10 px-3 py-1 rounded-lg" onclick="editEvent('${ev.id}')">Editar</button></div>`;
+    list.appendChild(div);
+  });
+}
+
+async function editEvent(id){
+  const {data} = await supabase.from('events').select('*').eq('id',id).single();
+  document.getElementById('eventId').value=data.id;
+  document.getElementById('evNombre').value=data.nombre;
+  document.getElementById('evDesc').value=data.descripcion||'';
+  document.getElementById('evFecha').value=data.fecha||'';
+  document.getElementById('evMensaje').value=data.mensaje_bienvenida||'';
+  document.getElementById('evDelay').value=data.welcome_delay_seconds||0;
+  document.getElementById('evDuracion').value=data.welcome_duration_seconds||9;
+  document.getElementById('evActivo').checked=data.activo;
+}
+
+async function selectEvent(id){
+  selectedEventId=id;
+  const {data: ev} = await supabase.from('events').select('*').eq('id',id).single();
+  document.getElementById('selectedEventName').textContent=ev.nombre;
+  document.getElementById('detailSection').classList.remove('hidden');
+  loadCategories(); loadProjects(); loadVoteControls(); loadRegs();
+}
+
+async function loadCategories(){
+  const {data} = await supabase.from('categories').select('*').eq('event_id', selectedEventId).order('orden');
+  const list=document.getElementById('catList'); list.innerHTML=''; const sel=document.getElementById('projCat'); sel.innerHTML='';
+  data.forEach(c=>{
+    list.innerHTML+=`<div class="flex justify-between p-2 rounded-lg bg-white/[0.04] border border-white/10"><span>${c.key} - ${c.label}</span><button onclick="deleteCat('${c.id}')" class="text-xs text-red-300">x</button></div>`;
+    sel.innerHTML+=`<option value="${c.id}">${c.label}</option>`;
+  });
+}
+async function loadProjects(){
+  const {data} = await supabase.from('projects').select('*, categories(label)').eq('event_id', selectedEventId).order('orden');
+  const list=document.getElementById('projList'); list.innerHTML='';
+  data.forEach(p=>{ list.innerHTML+=`<div class="p-2 rounded-lg bg-white/[0.04] border border-white/10 text-sm"><b>${p.title}</b> - ${p.categories?.label||''}<br><span class="text-white/50">${p.team||''}</span></div>`; });
+}
+async function loadVoteControls(){
+  const {data} = await supabase.from('categories').select('*').eq('event_id', selectedEventId);
+  const cont=document.getElementById('voteControls'); cont.innerHTML='';
+  data.forEach(c=>{
+    const row=document.createElement('div'); row.className='flex justify-between items-center p-3 rounded-xl bg-white/[0.04] border border-white/10';
+    row.innerHTML=`<span>${c.label} - ${c.votacion_abierta?'ABIERTA':'CERRADA'}</span><button class="px-4 py-2 rounded-lg font-bold ${c.votacion_abierta?'bg-white/10':'bg-lime-300 text-black'}" onclick="toggleVote('${c.id}', ${!c.votacion_abierta})">${c.votacion_abierta?'Cerrar':'Abrir'} votación</button>`;
+    cont.appendChild(row);
+  });
+}
+async function loadRegs(){
+  const {data} = await supabase.from('registrations').select('*').eq('event_id', selectedEventId).order('hora_registro',{ascending:false}).limit(100);
+  const list=document.getElementById('regList'); list.innerHTML='';
+  data.forEach(r=>{ list.innerHTML+=`<div class="p-2 rounded bg-white/[0.03] flex justify-between"><span>${r.nombres} ${r.apellidos} - ${r.email} - ${r.estado}</span><span class="text-white/40">${r.id.slice(0,8)}</span></div>`; });
+}
+
+document.getElementById('eventForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const id=document.getElementById('eventId').value;
+  const payload={nombre: document.getElementById('evNombre').value, descripcion: document.getElementById('evDesc').value, fecha: document.getElementById('evFecha').value||null, mensaje_bienvenida: document.getElementById('evMensaje').value, welcome_delay_seconds: parseInt(document.getElementById('evDelay').value)||0, welcome_duration_seconds: parseInt(document.getElementById('evDuracion').value)||9, activo: document.getElementById('evActivo').checked};
+  if(payload.activo){ await supabase.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000'); }
+  if(id){ await supabase.from('events').update(payload).eq('id',id); } else { const {data} = await supabase.from('events').insert(payload).select().single(); }
+  document.getElementById('eventForm').reset(); document.getElementById('eventId').value=''; loadEvents();
+});
+
+document.getElementById('catForm').addEventListener('submit', async e=>{ e.preventDefault(); await supabase.from('categories').insert({event_id:selectedEventId, key:document.getElementById('catKey').value, label:document.getElementById('catLabel').value}); e.target.reset(); loadCategories(); loadVoteControls(); });
+document.getElementById('projForm').addEventListener('submit', async e=>{ e.preventDefault(); await supabase.from('projects').insert({event_id:selectedEventId, category_id:document.getElementById('projCat').value, title:document.getElementById('projTitle').value, team:document.getElementById('projTeam').value, photo_url:document.getElementById('projPhoto').value}); e.target.reset(); loadProjects(); });
+
+window.toggleVote=async(id, open)=>{ await supabase.from('categories').update({votacion_abierta:open}).eq('id',id); loadVoteControls(); };
+window.deleteCat=async(id)=>{ if(confirm('Borrar categoria?')){ await supabase.from('categories').delete().eq('id',id); loadCategories(); } };
+window.selectEvent=selectEvent; window.editEvent=editEvent;
+
+window.addEventListener('load', loadEvents);
+</script>
+</body>
+</html>

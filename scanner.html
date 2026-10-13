@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Scanner Ingreso</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+</head>
+<body class="min-h-screen bg-[#020617] text-white flex items-center justify-center p-4">
+  <div class="relative w-full max-w-[680px] bg-white/[0.05] border border-white/10 rounded-[32px] p-6">
+    <div class="flex justify-between items-center"><h1 class="text-2xl font-extrabold">Control de ingreso</h1><div id="eventTag" class="bg-white/10 px-3 py-1.5 rounded-full text-xs">Conectando...</div></div>
+    <div class="mt-6 rounded-[24px] overflow-hidden bg-black border border-white/10 aspect-[4/3] relative"><div id="reader" class="w-full h-full"></div></div>
+    <button id="startBtn" class="mt-6 w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">📷 Activar cámara</button>
+    <div id="message" class="mt-4 p-4 rounded-2xl bg-white/[0.06] text-sm text-center">Toca activar cámara</div>
+    <div id="validationDetails" class="hidden mt-4 p-4 rounded-2xl bg-white/[0.06] border border-white/10"></div>
+    <button id="nextBtn" class="hidden mt-4 w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">Escanear otro</button>
+  </div>
+<script>
+let html5QrCode=null, scanning=false, activeEvent=null;
+const msg=document.getElementById('message');
+
+async function loadActiveEvent(){
+  const {data} = await supabase.from('events').select('*').eq('activo',true).limit(1).single();
+  if(data){ activeEvent=data; document.getElementById('eventTag').textContent=data.nombre; }
+}
+
+async function onScanSuccess(decoded){
+  const id = decoded.trim();
+  msg.textContent='Verificando '+id+'...';
+  if(html5QrCode) try{ await html5QrCode.pause(true); }catch(e){}
+  scanning=false;
+
+  // El QR es el UUID de registrations
+  const {data: reg, error} = await supabase.from('registrations').select('*').eq('id', id).single();
+  if(error || !reg){ msg.textContent='🚫 QR no válido'; document.getElementById('nextBtn').style.display='block'; return; }
+  if(reg.event_id !== activeEvent?.id){ msg.textContent='🚫 Este ticket es de otro evento'; document.getElementById('nextBtn').style.display='block'; return; }
+  if(reg.estado === 'INGRESADO'){ msg.textContent=`⚠️ Ya ingresó a las ${new Date(reg.hora_ingreso).toLocaleTimeString()}`; document.getElementById('validationDetails').innerHTML=`<b>${reg.nombres} ${reg.apellidos}</b><br>${reg.nombre_estudiante}`; document.getElementById('validationDetails').classList.remove('hidden'); document.getElementById('nextBtn').style.display='block'; return; }
+
+  const {error: upErr} = await supabase.from('registrations').update({estado:'INGRESADO', hora_ingreso: new Date().toISOString()}).eq('id', id);
+  if(upErr){ msg.textContent='Error actualizando'; } else { msg.textContent=`✅ BIENVENIDO: ${reg.nombres} ${reg.apellidos}`; document.getElementById('validationDetails').innerHTML=`DNI: ${reg.dni}<br>Alumno: ${reg.nombre_estudiante}<br>Voto habilitado: SÍ`; document.getElementById('validationDetails').classList.remove('hidden'); }
+  document.getElementById('nextBtn').style.display='block';
+}
+
+async function startScanner(){
+  html5QrCode=new Html5Qrcode('reader');
+  await html5QrCode.start({facingMode:'environment'}, {fps:10, qrbox:{width:250,height:250}}, onScanSuccess, ()=>{});
+  scanning=true; document.getElementById('startBtn').style.display='none';
+}
+document.getElementById('startBtn').addEventListener('click', startScanner);
+document.getElementById('nextBtn').addEventListener('click', ()=>{ document.getElementById('nextBtn').style.display='none'; document.getElementById('validationDetails').classList.add('hidden'); html5QrCode.resume(); scanning=true; msg.textContent='Listo para escanear'; });
+window.addEventListener('load', loadActiveEvent);
+</script>
+</body>
+</html>
