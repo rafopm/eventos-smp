@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Registro Grupos Concursantes - Feria San Martín</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script>
+window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
+window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
+</script>
+<script src="config.js?v=8"></script>
+</head>
+<body class="min-h-screen bg-[#0a0f0d] text-white flex items-center justify-center p-4">
+<main class="w-full max-w-2xl">
+<div class="text-center mb-6">
+<h1 class="text-3xl font-black">Registro de Grupos Concursantes</h1>
+<p class="text-white/50 text-sm mt-2">Inscribe tu proyecto para la feria</p>
+<div id="eventBadge" class="mt-3 inline-flex bg-lime-300 text-black px-3 py-1 rounded-full text-xs font-bold">Cargando evento...</div>
+</div>
+<section class="bg-white/[0.05] border border-white/10 rounded-[24px] p-6">
+<form id="groupForm" class="grid gap-4">
+<div class="grid md:grid-cols-2 gap-3">
+<div>
+<label class="text-xs text-white/50">Categoría *</label>
+<select id="categoryId" required class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<option value="">Selecciona categoría...</option>
+</select>
+</div>
+<div>
+<label class="text-xs text-white/50">Grado / Sección (opcional)</label>
+<input id="grado" placeholder="Ej: 4to B" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+</div>
+</div>
+<div>
+<label class="text-xs text-white/50">Nombre del Proyecto / Grupo *</label>
+<input id="title" required placeholder="Ej: Robot Reciclador 3000" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+</div>
+<div>
+<label class="text-xs text-white/50">Integrantes del grupo *</label>
+<textarea id="team" required placeholder="Nombres de integrantes separados por coma. Ej: Ana Pérez, Luis García, María López" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm" rows="2"></textarea>
+</div>
+<div>
+<label class="text-xs text-white/50">Descripción del proyecto *</label>
+<textarea id="description" required placeholder="Describe brevemente de qué trata, materiales, objetivo..." class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm" rows="3"></textarea>
+</div>
+<div class="grid md:grid-cols-2 gap-3">
+<div>
+<label class="text-xs text-white/50">Email responsable *</label>
+<input id="contactEmail" type="email" required placeholder="profesor o alumno responsable" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+</div>
+<div>
+<label class="text-xs text-white/50">Teléfono / WhatsApp</label>
+<input id="contactPhone" placeholder="999 999 999" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+</div>
+</div>
+<div class="grid md:grid-cols-2 gap-3">
+<div>
+<label class="text-xs text-white/50">Tutor / Docente asesor</label>
+<input id="tutorName" placeholder="Nombre del docente" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+</div>
+<div>
+<label class="text-xs text-white/50">Foto del proyecto (URL opcional)</label>
+<input id="photoUrl" placeholder="https://..." class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+</div>
+</div>
+<div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+<p class="text-[11px] text-amber-200">⚠️ Tu proyecto quedará en estado <b>PENDIENTE</b> hasta que el admin lo habilite. Podrás verlo en votación solo después de aprobación.</p>
+</div>
+<label class="flex gap-2 text-xs text-white/60"><input type="checkbox" required> Acepto bases de la feria y que mis datos sean usados para la exhibición</label>
+<button id="btnSubmit" class="bg-lime-300 text-black font-extrabold py-3.5 rounded-xl text-sm">📝 Registrar Grupo Concursante</button>
+<p id="msg" class="hidden text-xs p-3 rounded-xl"></p>
+</form>
+</section>
+<section id="successSection" class="hidden mt-6 bg-white text-black p-6 rounded-[24px] text-center">
+<p class="font-black text-lg">¡Grupo registrado!</p>
+<p class="text-xs text-black/60 mt-2">Tu proyecto está pendiente de aprobación por el admin. Te avisaremos por correo.</p>
+<p id="successId" class="mt-4 font-mono text-xs font-bold"></p>
+<div class="mt-5 grid gap-2">
+<a href="registro-grupos.html" class="w-full bg-black text-white font-bold py-3 rounded-xl text-sm text-center">Registrar otro grupo</a>
+<a href="index.html" class="w-full bg-black/5 text-black py-2.5 rounded-xl text-xs text-center">Ir a registro de visitantes</a>
+</div>
+</section>
+</main>
+<script>
+let supabaseClient=null;
+let activeEvent=null;
+function initClient(){
+  supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return supabaseClient;
+}
+async function loadActiveEvent(){
+  try{
+    const {data, error} = await supabaseClient.from('events').select('*').eq('activo', true).limit(1).single();
+    if(error) throw error;
+    activeEvent=data;
+    document.getElementById('eventBadge').textContent=data.nombre;
+    await loadCategories();
+    return data;
+  }catch(err){
+    document.getElementById('eventBadge').textContent='Sin evento activo - configura en admin.html';
+    document.getElementById('eventBadge').className='mt-3 inline-flex bg-red-500/20 text-red-200 px-3 py-1 rounded-full text-xs';
+    return null;
+  }
+}
+async function loadCategories(){
+  const {data} = await supabaseClient.from('categories').select('*').eq('event_id', activeEvent.id).order('orden');
+  const sel=document.getElementById('categoryId');
+  sel.innerHTML='<option value="">Selecciona categoría...</option>';
+  data.forEach(c=>{
+    sel.innerHTML+=`<option value="${c.id}">${c.label} (${c.key})</option>`;
+  });
+}
+document.getElementById('groupForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const btn=document.getElementById('btnSubmit');
+  const msg=document.getElementById('msg');
+  btn.disabled=true; btn.textContent='Registrando...';
+  msg.classList.remove('hidden');
+  msg.className='text-xs p-3 rounded-xl bg-white/10';
+  msg.textContent='Guardando grupo...';
+  
+  try{
+    if(!activeEvent) await loadActiveEvent();
+    if(!activeEvent) throw new Error('No hay evento activo');
+    
+    const grado = document.getElementById('grado').value.trim();
+    const title = document.getElementById('title').value.trim();
+    const team = document.getElementById('team').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const contactEmail = document.getElementById('contactEmail').value.trim();
+    const contactPhone = document.getElementById('contactPhone').value.trim();
+    const tutorName = document.getElementById('tutorName').value.trim();
+    const photoUrl = document.getElementById('photoUrl').value.trim() || null;
+    const categoryId = document.getElementById('categoryId').value;
+    
+    // Payload base con columnas que seguro existen
+    let payload = {
+      event_id: activeEvent.id,
+      category_id: categoryId,
+      title: title,
+      team: team + (grado ? ` | ${grado}` : ''),
+      description: description,
+      photo_url: photoUrl,
+      activo: false, // queda pendiente hasta aprobación admin
+    };
+    
+    // Intentar con columnas nuevas si existen (contact_email, contact_phone, tutor_name, estado_registro)
+    // Si la tabla no tiene esas columnas, Supabase dará error, hacemos fallback
+    let payloadExtended = {
+      ...payload,
+      contact_email: contactEmail,
+      contact_phone: contactPhone,
+      tutor_name: tutorName,
+      estado_registro: 'PENDIENTE'
+    };
+    
+    let inserted = null;
+    let error = null;
+    
+    // Intento 1: con columnas extendidas
+    let res = await supabaseClient.from('projects').insert(payloadExtended).select().single();
+    if(res.error){
+      console.warn('Columnas extendidas no existen, fallback a básico:', res.error.message);
+      // Intento 2: solo columnas básicas + guardar contacto en description
+      const descWithContact = `${description}\n\n--- CONTACTO ---\nEmail: ${contactEmail}\nTel: ${contactPhone}\nTutor: ${tutorName}`;
+      payload.description = descWithContact;
+      const res2 = await supabaseClient.from('projects').insert(payload).select().single();
+      if(res2.error) throw res2.error;
+      inserted = res2.data;
+    } else {
+      inserted = res.data;
+    }
+    
+    document.getElementById('groupForm').classList.add('hidden');
+    document.getElementById('successSection').classList.remove('hidden');
+    document.getElementById('successId').textContent = `ID: ${inserted.id.slice(0,8)} - ${inserted.title} - PENDIENTE`;
+    msg.classList.add('hidden');
+    
+    // Opcional: enviar email de confirmación al responsable si tienes EmailRelay configurado
+    if(window.APPS_SCRIPT_EMAIL_URL && window.APPS_SCRIPT_EMAIL_URL.includes('/exec')){
+      fetch(window.APPS_SCRIPT_EMAIL_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({
+          to: contactEmail,
+          id: inserted.id,
+          nombre: team.split(',')[0] || title,
+          evento: `Registro grupo - ${activeEvent.nombre} - ${title} (Pendiente aprobación)`
+        })
+      }).catch(()=>{});
+    }
+    
+  }catch(err){
+    msg.classList.remove('hidden');
+    msg.className='text-xs p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
+    msg.textContent='Error: '+err.message + ' - Si es error de RLS, ejecuta en Supabase: create policy \"Public can insert projects pending\" on projects for insert with check (activo = false);';
+  } finally {
+    btn.disabled=false; btn.textContent='📝 Registrar Grupo Concursante';
+  }
+});
+window.addEventListener('load', async()=>{
+  initClient();
+  await loadActiveEvent();
+});
+</script>
+</body>
+</html>
