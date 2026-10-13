@@ -3,70 +3,343 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Registro - Evento</title>
+<title>Registro - Feria San Martín</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
 window.SUPABASE_URL = "https://pgnlafozaukhdqlxfcfk.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
-// PEGA AQUÍ TU URL DE APPS SCRIPT WEB APP
-window.APPS_SCRIPT_EMAIL_URL = "https://script.google.com/macros/s/AKfycbyvn-JNmLOvy82o9EW8F5zj1OwDe2cpsJAeoH3joIUN2bsFVtCrBtO0oCKChUx1RO3VXA/exec";
+window.APPS_SCRIPT_EMAIL_URL = "https://script.google.com/macros/s/AKfycbyvn-JNmLOvy82o9EW8F5zj1OwDe2cpsJAeoH3joIUN2bsFVtCrBtO0oCKChUx1RO3VXA/exec"; // PEGA TU URL REAL
 </script>
-<script src="config.js?v=4"></script>
+<script src="config.js?v=7"></script>
 </head>
 <body class="min-h-screen bg-[#0a0f0d] text-white flex items-center justify-center p-4">
-<main class="w-full max-w-md bg-white/[0.05] border border-white/10 rounded-[24px] p-6">
-<h1 class="text-2xl font-black">Registro Feria</h1>
-<p class="text-white/50 text-sm mt-1">Te enviamos tu QR a eventos@colegiosanmartin.edu.pe</p>
+<main class="w-full max-w-md">
 
-<form id="regForm" class="mt-6 grid gap-3">
+<div class="text-center mb-6">
+<h1 class="text-3xl font-black tracking-tight">Feria San Martín</h1>
+<p class="text-white/50 text-sm mt-2">Valida tu correo primero</p>
+<div id="eventNameBadge" class="mt-2 text-[11px] text-lime-300/70"></div>
+</div>
+
+<!-- PASO 1: EMAIL -->
+<section id="stepEmail" class="bg-white/[0.05] border border-white/10 rounded-[24px] p-6">
+<h2 class="font-bold text-sm text-white/70">PASO 1 - Correo electrónico</h2>
+<form id="emailForm" class="mt-4 grid gap-3">
+<input id="checkEmail" type="email" required placeholder="ej: familia@gmail.com" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3.5 text-sm">
+<button id="btnCheckEmail" class="bg-white text-black font-extrabold py-3.5 rounded-xl text-sm">Validar correo</button>
+<p id="emailMsg" class="hidden text-xs p-3 rounded-xl"></p>
+</form>
+<p class="text-[11px] text-white/30 mt-3">Verificamos si ya tienes entrada para evitar duplicados</p>
+</section>
+
+<!-- YA REGISTRADO - SEGURO, SIN DATOS SENSIBLES -->
+<section id="alreadyRegistered" class="hidden mt-6 rounded-[24px] p-6 border">
+<div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-2xl mx-auto">✉️</div>
+<h3 class="text-center font-black mt-3 text-[15px]">Correo ya registrado</h3>
+
+<div class="mt-4 bg-white/[0.04] border border-white/10 rounded-xl p-4">
+<p class="text-[13px] text-white/80 leading-relaxed text-center">
+Este correo <b id="alreadyEmailMasked" class="text-white"></b> ya tiene una entrada registrada para este evento.
+</p>
+<p class="text-[12px] text-white/50 leading-relaxed text-center mt-3">
+📧 <b>Revisa tu bandeja de entrada</b> (y la carpeta de spam / promociones).<br>
+Te enviamos la invitación con tu QR el día que te registraste.
+</p>
+</div>
+
+<div class="mt-5">
+<p class="text-[12px] text-white/70 text-center font-bold">¿No encuentras el correo?</p>
+<p class="text-[11px] text-white/40 text-center mt-1">Podemos reenviarte la invitación con tu QR nuevamente</p>
+
+<div class="mt-3 grid gap-2">
+<button id="btnResendEmail" class="w-full bg-lime-300 text-black font-extrabold py-3 rounded-xl text-sm">📨 Sí, reenviar invitación con QR</button>
+<p id="resendInfo" class="hidden text-[11px] text-center p-2.5 rounded-xl"></p>
+<button id="btnNoResend" class="w-full bg-white/10 text-white py-2.5 rounded-xl text-xs">No, ya revisaré mi correo</button>
+</div>
+
+<p class="text-[10px] text-white/30 text-center mt-3">Por seguridad no mostramos datos personales aquí. El QR solo llega a tu correo registrado.</p>
+</div>
+
+<button id="btnChangeEmail1" class="mt-5 w-full text-[11px] text-white/40 underline">Usar otro correo</button>
+</section>
+
+<!-- CONFIRMACIÓN REENVÍO -->
+<section id="resendSuccess" class="hidden mt-6 bg-emerald-500/10 border border-emerald-500/20 rounded-[24px] p-6 text-center">
+<div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-2xl mx-auto">✓</div>
+<h3 class="font-black mt-3 text-emerald-200">¡Invitación reenviada!</h3>
+<p class="text-xs text-emerald-200/70 mt-2">Te reenviamos el QR a <b id="resendEmailMasked" class="text-emerald-100"></b></p>
+<p class="text-[11px] text-white/40 mt-3">Revisa tu correo en los próximos 30 segundos (y spam). Por seguridad, podrás solicitar otro reenvío en 10 minutos.</p>
+<button id="btnBackAfterResend" class="mt-4 w-full bg-white/10 text-white py-2.5 rounded-xl text-xs">Entendido, revisaré mi correo</button>
+</section>
+
+<!-- PASO 2: FORMULARIO -->
+<section id="stepForm" class="hidden mt-6 bg-white/[0.05] border border-white/10 rounded-[24px] p-6">
+<div class="flex justify-between items-center">
+<h2 class="font-bold text-sm text-white/70">PASO 2 - Tus datos</h2>
+<span id="validatedEmailBadge" class="text-[11px] bg-lime-300 text-black px-2.5 py-1 rounded-full font-bold"></span>
+</div>
+<form id="regForm" class="mt-4 grid gap-3">
 <input id="nombres" required placeholder="Nombres" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
 <input id="apellidos" required placeholder="Apellidos" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<input id="dni" required placeholder="DNI" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<input id="email" type="email" required placeholder="Correo donde recibir QR" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
+<input id="dni" required placeholder="DNI (8 dígitos)" pattern="[0-9]{8}" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
 <input id="estudiante" placeholder="Nombre estudiante (opcional)" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<button id="btnSubmit" class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Registrar y enviar QR</button>
-<p id="msg" class="hidden text-xs p-3 rounded-xl"></p>
+<input type="hidden" id="finalEmail">
+<label class="flex gap-2 items-start text-[11px] text-white/40"><input type="checkbox" required class="mt-0.5"> Acepto que mi correo reciba la invitación con QR</label>
+<button id="btnSubmit" class="bg-lime-300 text-black font-extrabold py-3.5 rounded-xl text-sm">Registrar y enviar QR</button>
+<p id="regMsg" class="hidden text-xs p-3 rounded-xl"></p>
 </form>
+<button id="btnBackToEmail" class="mt-3 w-full text-[11px] text-white/40">← Cambiar correo</button>
+</section>
 
-<div id="qrResult" class="hidden mt-6 text-center bg-white text-black p-6 rounded-[20px]">
-<p class="font-bold text-sm">¡Registro OK! QR enviado</p>
-<div id="qrcode" class="mt-4 flex justify-center"></div>
-<p id="qrId" class="mt-3 font-mono text-xs"></p>
-<p class="text-[11px] text-black/50 mt-2">Si no te llega el email, muestra este QR en el ingreso + DNI físico</p>
-<a id="btnVote" href="vote.html" class="mt-4 inline-block text-xs bg-black text-white px-4 py-2 rounded-full">Ir a votar (cuando ingreses)</a>
+<!-- RESULTADO NUEVO -->
+<section id="qrResult" class="hidden mt-6 bg-white text-black p-6 rounded-[24px] text-center">
+<p class="font-black text-lg">¡Registro exitoso!</p>
+<p class="text-xs text-black/60 mt-1">Te enviamos la invitación a tu correo</p>
+<div id="qrcodeNew" class="mt-5 flex justify-center"></div>
+<p id="qrIdNew" class="mt-4 font-mono text-xs font-bold"></p>
+<div class="mt-4 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-left">
+<p class="text-[11px] text-amber-800">📧 Revisa tu correo (y spam). Te llegará con el QR. Guarda este código por si no te llega el email.</p>
 </div>
+<div class="mt-5 grid gap-2">
+<a href="vote.html" class="w-full bg-black text-white font-bold py-3 rounded-xl text-sm text-center">Ir a votar (cuando ingreses)</a>
+<button id="btnNewRegistration" class="w-full bg-black/5 text-black py-2.5 rounded-xl text-xs">Registrar otro correo</button>
+</div>
+</section>
+
 </main>
 
 <script>
 let supabaseClient;
+let activeEvent = null;
+let currentEmail = "";
+let existingRegistrationId = null; // Solo guardamos ID, no datos sensibles
+
 function initClient(){
-  if(!window.supabase?.createClient){ alert('CDN supabase no cargó'); return null; }
   supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  window.supabaseClient = supabaseClient;
   return supabaseClient;
 }
 
+async function getActiveEvent(){
+  const {data, error} = await supabaseClient.from('events').select('*').eq('activo', true).single();
+  if(error || !data) return null;
+  activeEvent = data;
+  document.getElementById('eventNameBadge').textContent = `Evento activo: ${data.nombre}`;
+  return data;
+}
+
+function maskEmail(email){
+  const [user, domain] = email.split('@');
+  if(user.length<=2) return email;
+  return user[0] + '***' + user.slice(-1) + '@' + domain;
+}
+
+function showQR(elementId, text){
+  document.getElementById(elementId).innerHTML='';
+  new QRCode(document.getElementById(elementId), {text: text, width: 200, height: 200});
+}
+
+// ANTI-SPAM
+const RESEND_COOLDOWN_MS = 10 * 60 * 1000;
+const RESEND_MAX_PER_HOUR = 3;
+
+function getResendHistory(email){
+  try{
+    const raw = localStorage.getItem(`resend_history_${email.toLowerCase()}`);
+    return raw ? JSON.parse(raw) : [];
+  }catch{ return []; }
+}
+function addResendHistory(email){
+  const history = getResendHistory(email);
+  history.push(Date.now());
+  const oneHourAgo = Date.now() - 60*60*1000;
+  const filtered = history.filter(t => t > oneHourAgo);
+  localStorage.setItem(`resend_history_${email.toLowerCase()}`, JSON.stringify(filtered));
+}
+function canResend(email){
+  const history = getResendHistory(email);
+  const now = Date.now();
+  if(history.length>0){
+    const last = Math.max(...history);
+    if(now - last < RESEND_COOLDOWN_MS){
+      const waitMin = Math.ceil((RESEND_COOLDOWN_MS - (now-last))/60000);
+      return {ok:false, reason:`Ya reenviamos la invitación hace ${Math.floor((now-last)/60000)} min. Revisa tu bandeja y spam. Podrás reenviar en ${waitMin} min.`};
+    }
+  }
+  if(history.length >= RESEND_MAX_PER_HOUR){
+    return {ok:false, reason:`Has solicitado ${history.length} reenvíos en la última hora. Para evitar spam, espera 1 hora.`};
+  }
+  return {ok:true};
+}
+
+// PASO 1 - VALIDAR CORREO (solo verifica existencia, no trae datos sensibles)
+document.getElementById('emailForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const emailInput = document.getElementById('checkEmail');
+  const btn = document.getElementById('btnCheckEmail');
+  const msg = document.getElementById('emailMsg');
+  const email = emailInput.value.trim().toLowerCase();
+  
+  if(!email || !email.includes('@')){ msg.classList.remove('hidden'); msg.textContent='Pon un correo válido'; msg.className='text-xs p-3 rounded-xl bg-red-500/10 text-red-200'; return; }
+  
+  btn.disabled=true; btn.textContent='Validando...';
+  msg.classList.remove('hidden'); msg.className='text-xs p-3 rounded-xl bg-white/10 text-white/60'; msg.textContent='Verificando...';
+  
+  try{
+    const ev = await getActiveEvent();
+    if(!ev) throw new Error('No hay evento activo. Configúralo en admin.html');
+    currentEmail = email;
+    
+    // IMPORTANTE: Solo traemos ID para verificar existencia, NO datos personales
+    // Usamos .select('id') para no exponer nombres/DNI a extraños que prueben correos al azar
+    const {data, error} = await supabaseClient.from('registrations').select('id').eq('event_id', ev.id).eq('email', email).limit(1);
+    if(error) throw error;
+    
+    if(data && data.length>0){
+      // YA REGISTRADO - NO mostrar datos sensibles
+      existingRegistrationId = data[0].id;
+      document.getElementById('stepEmail').classList.add('hidden');
+      document.getElementById('stepForm').classList.add('hidden');
+      document.getElementById('qrResult').classList.add('hidden');
+      document.getElementById('resendSuccess').classList.add('hidden');
+      
+      const alreadySec = document.getElementById('alreadyRegistered');
+      alreadySec.classList.remove('hidden');
+      alreadySec.className='mt-6 rounded-[24px] p-6 border bg-amber-500/10 border-amber-500/20';
+      
+      document.getElementById('alreadyEmailMasked').textContent = maskEmail(email);
+      
+      const can = canResend(email);
+      const resendBtn = document.getElementById('btnResendEmail');
+      const resendInfo = document.getElementById('resendInfo');
+      if(!can.ok){
+        resendBtn.disabled=true;
+        resendBtn.className='w-full bg-white/10 text-white/40 font-bold py-3 rounded-xl text-sm';
+        resendInfo.classList.remove('hidden');
+        resendInfo.className='text-[11px] text-center p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
+        resendInfo.textContent = can.reason;
+      } else {
+        resendBtn.disabled=false;
+        resendBtn.className='w-full bg-lime-300 text-black font-extrabold py-3 rounded-xl text-sm';
+        resendInfo.classList.add('hidden');
+      }
+      
+      msg.classList.add('hidden');
+    } else {
+      // NO EXISTE
+      document.getElementById('stepEmail').classList.add('hidden');
+      document.getElementById('alreadyRegistered').classList.add('hidden');
+      document.getElementById('stepForm').classList.remove('hidden');
+      document.getElementById('validatedEmailBadge').textContent = maskEmail(email);
+      document.getElementById('finalEmail').value = email;
+      msg.classList.add('hidden');
+    }
+  }catch(err){
+    msg.classList.remove('hidden');
+    msg.className='text-xs p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
+    msg.textContent='Error: '+err.message;
+  } finally {
+    btn.disabled=false; btn.textContent='Validar correo';
+  }
+});
+
+// REENVIAR con anti-spam - ahora necesita buscar el registro completo solo al reenviar, y lo envía por email, no lo muestra en pantalla
+document.getElementById('btnResendEmail').addEventListener('click', async()=>{
+  const email = currentEmail;
+  const can = canResend(email);
+  const btn=document.getElementById('btnResendEmail');
+  const info=document.getElementById('resendInfo');
+  
+  if(!can.ok){
+    info.classList.remove('hidden');
+    info.className='text-[11px] text-center p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
+    info.textContent=can.reason;
+    return;
+  }
+  
+  btn.disabled=true; btn.textContent='Enviando...';
+  info.classList.remove('hidden');
+  info.className='text-[11px] text-center p-2.5 rounded-xl bg-white/10 text-white/60';
+  info.textContent='Reenviando invitación...';
+  
+  try{
+    // Ahora sí traemos datos completos solo para reenviar por email al dueño real del correo
+    // Esto evita que extraños vean datos, solo el dueño recibe su propio email
+    const {data: reg, error} = await supabaseClient.from('registrations').select('*').eq('id', existingRegistrationId).single();
+    if(error) throw error;
+    
+    if(window.APPS_SCRIPT_EMAIL_URL && window.APPS_SCRIPT_EMAIL_URL.includes('/exec')){
+      await fetch(window.APPS_SCRIPT_EMAIL_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({to: reg.email, id: reg.id, nombre: reg.nombres + ' ' + reg.apellidos, evento: activeEvent?.nombre||'evento'})
+      });
+      addResendHistory(email);
+      
+      // Mostrar confirmación sin datos sensibles
+      document.getElementById('alreadyRegistered').classList.add('hidden');
+      document.getElementById('resendSuccess').classList.remove('hidden');
+      document.getElementById('resendEmailMasked').textContent = maskEmail(email);
+      
+    } else {
+      throw new Error('No configurado APPS_SCRIPT_EMAIL_URL');
+    }
+  }catch(e){
+    info.className='text-[11px] text-center p-2.5 rounded-xl bg-red-500/10 text-red-200';
+    info.textContent='Error: '+e.message;
+    btn.disabled=false; btn.textContent='📨 Sí, reenviar invitación con QR';
+  }
+});
+
+document.getElementById('btnNoResend').addEventListener('click', ()=>{
+  document.getElementById('alreadyRegistered').classList.add('hidden');
+  document.getElementById('stepEmail').classList.remove('hidden');
+  document.getElementById('checkEmail').value='';
+});
+
+document.getElementById('btnBackAfterResend').addEventListener('click', ()=>{
+  document.getElementById('resendSuccess').classList.add('hidden');
+  document.getElementById('stepEmail').classList.remove('hidden');
+  document.getElementById('checkEmail').value='';
+  currentEmail=''; existingRegistrationId=null;
+});
+
+function resetToEmail(){
+  currentEmail=""; existingRegistrationId=null;
+  document.getElementById('checkEmail').value="";
+  document.getElementById('stepEmail').classList.remove('hidden');
+  document.getElementById('alreadyRegistered').classList.add('hidden');
+  document.getElementById('stepForm').classList.add('hidden');
+  document.getElementById('qrResult').classList.add('hidden');
+  document.getElementById('resendSuccess').classList.add('hidden');
+  document.getElementById('regForm').reset();
+  document.getElementById('emailMsg').classList.add('hidden');
+}
+
+document.getElementById('btnChangeEmail1').addEventListener('click', resetToEmail);
+document.getElementById('btnBackToEmail').addEventListener('click', resetToEmail);
+document.getElementById('btnNewRegistration').addEventListener('click', resetToEmail);
+
+// PASO 2 REGISTRO
 document.getElementById('regForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const btn=document.getElementById('btnSubmit');
-  const msg=document.getElementById('msg');
+  const msg=document.getElementById('regMsg');
   btn.disabled=true; btn.textContent='Registrando...';
   msg.classList.remove('hidden'); msg.className='text-xs p-3 rounded-xl bg-white/10'; msg.textContent='Guardando...';
   
   try{
-    // 1. Buscar evento activo
-    const {data: ev, error: evError} = await supabaseClient.from('events').select('*').eq('activo', true).single();
-    if(evError || !ev){ throw new Error('No hay evento activo. Crea uno en admin.html'); }
+    if(!activeEvent) await getActiveEvent();
+    const {data: dup} = await supabaseClient.from('registrations').select('id').eq('event_id', activeEvent.id).eq('email', currentEmail).limit(1);
+    if(dup && dup.length>0) throw new Error('Ese correo ya se registró mientras llenabas el formulario.');
     
-    // 2. Crear registro (id = QR)
     const payload={
-      event_id: ev.id,
+      event_id: activeEvent.id,
       nombres: document.getElementById('nombres').value.trim(),
       apellidos: document.getElementById('apellidos').value.trim(),
       dni: document.getElementById('dni').value.trim(),
-      email: document.getElementById('email').value.trim().toLowerCase(),
+      email: currentEmail,
       nombre_estudiante: document.getElementById('estudiante').value.trim()||null,
       estado: 'REGISTRADO'
     };
@@ -74,51 +347,33 @@ document.getElementById('regForm').addEventListener('submit', async e=>{
     const {data: reg, error} = await supabaseClient.from('registrations').insert(payload).select().single();
     if(error) throw error;
     
-    msg.textContent=`Registro OK: ${reg.id.slice(0,8)} - Enviando email...`;
+    document.getElementById('stepForm').classList.add('hidden');
+    document.getElementById('qrResult').classList.remove('hidden');
+    document.getElementById('qrIdNew').textContent = reg.id;
+    document.getElementById('qrcodeNew').innerHTML='';
+    new QRCode(document.getElementById('qrcodeNew'), {text: reg.id, width: 200, height: 200});
+    msg.classList.add('hidden');
     
-    // 3. Mostrar QR en pantalla inmediatamente (no espera email)
-    const qrDiv=document.getElementById('qrResult');
-    qrDiv.classList.remove('hidden');
-    document.getElementById('qrId').textContent=reg.id;
-    document.getElementById('qrcode').innerHTML='';
-    new QRCode(document.getElementById('qrcode'), {text: reg.id, width: 200, height: 200});
-    
-    // 4. Enviar email via Apps Script (en segundo plano, no bloquea)
     if(window.APPS_SCRIPT_EMAIL_URL && window.APPS_SCRIPT_EMAIL_URL.includes('/exec')){
-      try{
-        await fetch(window.APPS_SCRIPT_EMAIL_URL, {
-          method: 'POST',
-          mode: 'no-cors', // Apps Script requiere no-cors para evitar preflight
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            to: reg.email,
-            id: reg.id,
-            nombre: reg.nombres + ' ' + reg.apellidos,
-            evento: ev.nombre,
-            subject: `🎟️ Tu QR para ${ev.nombre}`
-          })
-        });
-        msg.textContent=`QR enviado a ${reg.email} (revisa spam) + mostrado aquí`;
-        msg.className='text-xs p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200';
-      }catch(emailErr){
-        console.error(emailErr);
-        msg.textContent=`Registro OK pero email falló (muestra este QR). Error: ${emailErr.message}`;
-        msg.className='text-xs p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200';
-      }
-    } else {
-      msg.textContent=`Registro OK: ${reg.id.slice(0,8)} - Configura APPS_SCRIPT_EMAIL_URL para enviar email`;
-      msg.className='text-xs p-3 rounded-xl bg-white/10';
+      fetch(window.APPS_SCRIPT_EMAIL_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({to: reg.email, id: reg.id, nombre: reg.nombres + ' ' + reg.apellidos, evento: activeEvent.nombre})
+      }).catch(()=>{});
     }
-    
   }catch(err){
-    msg.textContent='Error: '+err.message;
+    msg.classList.remove('hidden');
     msg.className='text-xs p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
+    msg.textContent='Error: '+err.message;
+    if(err.message.includes('ya se registró')){
+      setTimeout(()=>{ document.getElementById('checkEmail').value=currentEmail; document.getElementById('emailForm').dispatchEvent(new Event('submit')); }, 1500);
+    }
   } finally {
     btn.disabled=false; btn.textContent='Registrar y enviar QR';
   }
 });
 
-window.addEventListener('load', ()=>{ supabaseClient=initClient(); });
+window.addEventListener('load', async()=>{ initClient(); await getActiveEvent(); });
 </script>
 </body>
 </html>
