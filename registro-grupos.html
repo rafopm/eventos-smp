@@ -3,314 +3,256 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Registro Grupos - Baile, Teatro, Proyecto</title>
+<title>Registro Grupos - Feria San Martín</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script>
-window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
-window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
-</script>
-<script src="config.js?v=10"></script>
-</head>
-<body class="min-h-screen bg-[#0a0f0d] text-white flex items-center justify-center p-4">
-<main class="w-full max-w-2xl">
-<div class="text-center mb-6">
-<h1 class="text-3xl font-black">Registro de Grupos Concursantes</h1>
-<p class="text-white/50 text-sm mt-2">Proyecto, Baile, Teatro, Canto, Música, etc.</p>
-<div id="eventBadge" class="mt-3 inline-flex bg-lime-300 text-black px-3 py-1 rounded-full text-xs font-bold">Cargando evento...</div>
-</div>
-<section class="bg-white/[0.05] border border-white/10 rounded-[24px] p-6">
-<form id="groupForm" class="grid gap-4">
-<div class="grid md:grid-cols-2 gap-3">
-<div>
-<label class="text-xs text-white/50">Categoría *</label>
-<select id="categoryId" required class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<option value="">Selecciona categoría...</option>
-</select>
-<p class="text-[10px] text-white/30 mt-1">Ej: Primaria, Secundaria, Danza, Teatro...</p>
-</div>
-<div>
-<label class="text-xs text-white/50">Tipo de presentación *</label>
-<select id="tipoPresentacion" required class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<option value="">Selecciona...</option>
-<option value="PROYECTO">🔬 Proyecto / Ciencia</option>
-<option value="BAILE">💃 Baile / Danza</option>
-<option value="TEATRO">🎭 Teatro / Drama</option>
-<option value="CANTO">🎤 Canto / Música</option>
-<option value="MUSICA">🎸 Banda / Instrumental</option>
-<option value="ARTE">🎨 Arte / Pintura</option>
-<option value="OTRO">✨ Otro</option>
-</select>
-</div>
-</div>
-<!-- NOMBRE DE LA PRESENTACIÓN - CAMPO PRINCIPAL MEJORADO -->
-<div class="bg-white/[0.03] border border-white/10 rounded-xl p-3">
-<label class="text-xs font-bold text-amber-300">Nombre de la presentación / Proyecto *</label>
-<input id="title" required placeholder="Ej: Marinera Norteña 'Orgullo Trujillano' / Obra: Romeo y Julieta / Proyecto: Robot Reciclador" class="w-full mt-2 rounded-xl bg-white/[0.06] border border-amber-500/20 px-4 py-3 text-sm">
-<p class="text-[10px] text-white/40 mt-2">💡 Usa un nombre atractivo para el público: <br>• Si es <b>Baile</b>: nombre del baile o coreografía<br>• Si es <b>Teatro</b>: nombre de la obra<br>• Si es <b>Proyecto</b>: nombre del proyecto<br>• Si es <b>Canto</b>: nombre de la canción o show</p>
-</div>
-<!-- NOMBRE DEL GRUPO OPCIONAL - NUEVO -->
-<div>
-<label class="text-xs text-white/50">Nombre del Grupo / Elenco / Compañía <span class="text-white/30">(opcional)</span></label>
-<input id="nombreGrupo" placeholder="Ej: Elenco de Danza 4to B, Compañía Teatral San Martín, Grupo Los Innovadores (deja vacío si es individual)" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-<p class="text-[10px] text-white/30 mt-1">Opcional - útil para presentaciones artísticas colectivas</p>
-</div>
-<div>
-<label class="text-xs text-white/50">Integrantes / Elenco *</label>
-<textarea id="team" required placeholder="Nombres de integrantes. Ej: Ana Pérez (Marinera), Luis García (Guitarra), María López (Voz) - Separa por coma" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm" rows="2"></textarea>
-</div>
-<div class="grid md:grid-cols-2 gap-3">
-<div>
-<label class="text-xs text-white/50">Grado / Sección / Curso</label>
-<input id="grado" placeholder="Ej: 4to B, Taller de Danza, 5to Sec" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-</div>
-<div>
-<label class="text-xs text-white/50">Duración estimada (si es artística)</label>
-<input id="duracion" placeholder="Ej: 5 min, 10 min" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-</div>
-</div>
-<div>
-<label class="text-xs text-white/50">Descripción de la presentación *</label>
-<textarea id="description" required placeholder="Describe: de qué trata, vestuario, mensaje, materiales, objetivo, historia del baile/obra..." class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm" rows="3"></textarea>
-</div>
-<div class="grid md:grid-cols-2 gap-3">
-<div>
-<label class="text-xs text-white/50">Email responsable *</label>
-<input id="contactEmail" type="email" required placeholder="profesor o alumno responsable" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-</div>
-<div>
-<label class="text-xs text-white/50">Teléfono / WhatsApp</label>
-<input id="contactPhone" placeholder="999 999 999" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-</div>
-</div>
-<div>
-<label class="text-xs text-white/50">Tutor / Docente asesor</label>
-<input id="tutorName" placeholder="Nombre del docente" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3 text-sm">
-</div>
-<!-- FOTO CON UPLOAD A DRIVE - NUEVO -->
-<div class="bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 rounded-xl p-4">
-<label class="text-xs font-bold text-violet-300">📸 Foto del grupo / presentación (sube a Drive)</label>
-<div class="mt-2 grid gap-3">
-<input type="file" id="photoFile" accept="image/*" class="w-full text-xs text-white/50 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-violet-500 file:text-white file:text-xs file:font-bold">
-<div id="photoPreview" class="hidden">
-<img id="previewImg" class="w-full max-w-[300px] h-[180px] object-cover rounded-xl border border-white/10">
-<p id="uploadStatus" class="text-[11px] mt-2 font-mono"></p>
-</div>
-<p class="text-[10px] text-white/40">La foto se subirá automáticamente a tu Google Drive (carpeta FeriaSanMartin-Fotos-Grupos) y se guardará la URL en Supabase. Máx 5MB. También puedes pegar URL manual abajo.</p>
-<input id="photoUrlManual" placeholder="O pega URL manual si ya tienes foto en Drive/Cloud (opcional)" class="w-full rounded-xl bg-white/[0.04] border border-white/10 px-3 py-2 text-xs">
-</div>
-</div>
-<div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
-<p class="text-[11px] text-amber-200">⚠️ Tu presentación quedará <b>PENDIENTE</b> hasta que el admin la habilite. Revisa que el nombre sea atractivo para votación: "Marinera Norteña" suena mejor que "Baile 1".</p>
-</div>
-<label class="flex gap-2 text-xs text-white/60"><input type="checkbox" required> Acepto bases de la feria</label>
-<button id="btnSubmit" class="bg-lime-300 text-black font-extrabold py-3.5 rounded-xl text-sm">📝 Registrar Grupo / Presentación</button>
-<p id="msg" class="hidden text-xs p-3 rounded-xl"></p>
-</form>
-</section>
-<section id="successSection" class="hidden mt-6 bg-white text-black p-6 rounded-[24px] text-center">
-<p class="font-black text-lg">¡Registrado!</p>
-<p class="text-xs text-black/60 mt-2">Tu presentación está pendiente de aprobación.</p>
-<p id="successId" class="mt-4 font-mono text-xs font-bold"></p>
-<img id="successPhoto" class="hidden mt-4 w-full max-w-[320px] h-[200px] object-cover rounded-xl mx-auto">
-<div class="mt-5 grid gap-2">
-<a href="registro-grupos.html" class="w-full bg-black text-white font-bold py-3 rounded-xl text-sm text-center">Registrar otro</a>
-<a href="index.html" class="w-full bg-black/5 text-black py-2.5 rounded-xl text-xs text-center">Ir a registro visitantes</a>
-</div>
-</section>
-</main>
-<script>
-let supabaseClient=null;
-let activeEvent=null;
-let uploadedPhotoUrl=null;
-function initClient(){
-  supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  return supabaseClient;
-}
-async function loadActiveEvent(){
-  try{
-    const {data, error} = await supabaseClient.from('events').select('*').eq('activo', true).limit(1).single();
-    if(error) throw error;
-    activeEvent=data;
-    document.getElementById('eventBadge').textContent=data.nombre;
-    await loadCategories();
-    return data;
-  }catch(err){
-    document.getElementById('eventBadge').textContent='Sin evento activo - configura en admin.html';
-    document.getElementById('eventBadge').className='mt-3 inline-flex bg-red-500/20 text-red-200 px-3 py-1 rounded-full text-xs';
-    return null;
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        cream: '#fffeea',
+        cream2: '#fff9c5',
+        yellowLight: '#fff485',
+        yellow: '#ffe846',
+        amberBright: '#ffd81b',
+        amber: '#ffba08',
+        orange: '#e28d00',
+        orangeBurnt: '#bb6302',
+        brownOrange: '#984c08',
+        brownDark: '#7c3e0b',
+        brownDeep: '#482000',
+        pink: '#fe1954',
+        cyan: '#04bdcf',
+      }
+    }
   }
 }
-async function loadCategories(){
-  const {data} = await supabaseClient.from('categories').select('*').eq('event_id', activeEvent.id).order('orden');
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=11"></script>
+<link rel="stylesheet" href="styles.css?v=11">
+</head>
+<body class="min-h-screen bg-cream text-brownDeep p-4 md:p-8">
+<main class="w-full max-w-3xl mx-auto">
+  <!-- Header -->
+  <div class="text-center mb-8">
+    <div class="inline-flex items-center gap-2 badge badge-brown mb-4">🎭 Registro de grupos</div>
+    <h1 class="font-display font-black text-[clamp(2rem,5vw,3.5rem)] leading-[0.9] tracking-tight">Inscribe tu presentación</h1>
+    <p class="opacity-60 mt-3 max-w-xl mx-auto">Proyecto, baile, teatro, canto o banda. Elige el evento, sube tu foto y queda pendiente de aprobación.</p>
+  </div>
+  <section class="card p-6 md:p-8">
+    <form id="groupForm" class="grid gap-6">
+      <!-- EVENTO SELECTOR - NUEVO REQUERIDO -->
+      <div class="bg-cream2 border border-brownDeep/5 rounded-[20px] p-5">
+        <label class="text-xs font-black tracking-widest opacity-60">EVENTO DONDE PARTICIPAS *</label>
+        <select id="eventId" required class="input mt-2 font-bold">
+          <option value="">Cargando eventos...</option>
+        </select>
+        <p id="eventInfo" class="text-[11px] opacity-50 mt-2 hidden"></p>
+        <div id="eventImagePreview" class="hidden mt-3 flex gap-3 items-center">
+          <div class="event-square w-14 h-14 text-xl"><span id="eventInitials">SM</span><img id="eventImg" class="hidden"></div>
+          <div><p id="eventName" class="font-bold text-sm"></p><p id="eventDate" class="text-xs opacity-60"></p></div>
+        </div>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-bold opacity-60">Categoría *</label>
+          <select id="categoryId" required class="input mt-1">
+            <option value="">Primero elige evento...</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-bold opacity-60">Tipo de presentación *</label>
+          <select id="tipoPresentacion" required class="input mt-1">
+            <option value="">Selecciona...</option>
+            <option value="PROYECTO">🔬 Proyecto / Ciencia</option>
+            <option value="BAILE">💃 Baile / Danza</option>
+            <option value="TEATRO">🎭 Teatro / Drama</option>
+            <option value="CANTO">🎤 Canto / Música</option>
+            <option value="MUSICA">🎸 Banda / Instrumental</option>
+            <option value="ARTE">🎨 Arte / Pintura</option>
+            <option value="OTRO">✨ Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="bg-yellow/30 border border-amber/20 rounded-[20px] p-5">
+        <label class="text-xs font-black text-brownDeep">Nombre de la presentación *</label>
+        <input id="title" required placeholder="Ej: Marinera 'Orgullo' / Obra: Romeo / Proyecto: Robot" class="input mt-2 border-amber/30">
+        <p class="text-[11px] opacity-60 mt-2">💡 Baile: nombre de coreografía • Teatro: nombre obra • Proyecto: título atractivo</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-bold opacity-60">Nombre del grupo / Elenco <span class="opacity-40">(opcional)</span></label>
+          <input id="nombreGrupo" placeholder="Ej: Elenco Danza 4to B" class="input mt-1">
+        </div>
+        <div>
+          <label class="text-xs font-bold opacity-60">Grado / Taller</label>
+          <input id="grado" placeholder="Ej: 4to B, Taller Danza" class="input mt-1">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-bold opacity-60">Integrantes / Elenco *</label>
+        <textarea id="team" required placeholder="Ana Pérez, Luis García..." class="input mt-1" rows="2"></textarea>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-bold opacity-60">Duración estimada</label>
+          <input id="duracion" placeholder="5 min, 10 min" class="input mt-1">
+        </div>
+        <div>
+          <label class="text-xs font-bold opacity-60">Tutor / Docente</label>
+          <input id="tutorName" placeholder="Nombre docente" class="input mt-1">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-bold opacity-60">Descripción *</label>
+        <textarea id="description" required placeholder="¿De qué trata? Vestuario, mensaje, materiales..." class="input mt-1" rows="3"></textarea>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-bold opacity-60">Email responsable *</label>
+          <input id="contactEmail" type="email" required placeholder="profesor@..." class="input mt-1">
+        </div>
+        <div>
+          <label class="text-xs font-bold opacity-60">WhatsApp</label>
+          <input id="contactPhone" placeholder="999 999 999" class="input mt-1">
+        </div>
+      </div>
+      <div class="card-cream rounded-[20px] p-5">
+        <label class="text-xs font-black tracking-widest">📸 FOTO (sube a Drive)</label>
+        <input type="file" id="photoFile" accept="image/*" class="mt-3 w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-brownDeep file:text-white file:font-bold">
+        <div id="photoPreview" class="hidden mt-4">
+          <img id="previewImg" class="w-full max-w-[320px] h-[190px] object-cover rounded-[16px] border border-brownDeep/10">
+          <p id="uploadStatus" class="text-[11px] mt-2 font-mono"></p>
+        </div>
+        <input id="photoUrlManual" placeholder="O pega URL manual" class="input mt-3 text-xs">
+      </div>
+      <label class="flex gap-2 text-xs items-start"><input type="checkbox" required class="mt-1"> <span class="opacity-70">Acepto bases y que mi presentación quede <b>pendiente</b> hasta aprobación del admin.</span></label>
+      <button id="btnSubmit" class="btn-primary w-full text-base py-4">📝 Registrar grupo</button>
+      <p id="msg" class="hidden text-xs p-3 rounded-[12px]"></p>
+    </form>
+    <div id="successSection" class="hidden text-center py-8">
+      <div class="w-16 h-16 bg-amber rounded-full flex items-center justify-center mx-auto text-2xl">✅</div>
+      <h3 class="font-display font-black text-3xl mt-4">¡Registrado!</h3>
+      <p class="opacity-60 text-sm mt-2">Tu presentación está pendiente de aprobación.</p>
+      <p id="successId" class="mt-4 font-mono text-xs badge badge-cream"></p>
+      <img id="successPhoto" class="hidden mt-6 w-full max-w-[340px] h-[220px] object-cover rounded-[20px] mx-auto border border-brownDeep/10">
+      <div class="mt-8 grid gap-3">
+        <a href="registro-grupos.html" class="btn-primary">Registrar otro</a>
+        <a href="index.html" class="btn-ghost text-center">Ir a registro visitantes</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+let supabaseClient=null, activeEvent=null, uploadedPhotoUrl=null, events=[];
+function initClient(){ supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY); return supabaseClient; }
+async function loadEvents(){
+  const sel=document.getElementById('eventId');
+  try{
+    const {data, error} = await supabaseClient.from('events').select('*').order('fecha',{ascending:false});
+    if(error) throw error;
+    events=data;
+    sel.innerHTML='<option value="">Selecciona evento...</option>';
+    let activeFound=null;
+    data.forEach(ev=>{
+      const opt=document.createElement('option');
+      opt.value=ev.id;
+      opt.textContent=(ev.activo?'● ':'') + ev.nombre + (ev.fecha? ' - '+new Date(ev.fecha).toLocaleDateString():'');
+      if(ev.activo) opt.selected=true, activeFound=ev;
+      sel.appendChild(opt);
+    });
+    if(activeFound){
+      await onEventChange(activeFound.id);
+    } else if(data.length>0){
+      await onEventChange(data[0].id);
+      sel.value=data[0].id;
+    }
+  }catch(err){
+    sel.innerHTML='<option>Error cargando eventos</option>';
+  }
+}
+async function onEventChange(eventId){
+  const ev = events.find(e=>e.id===eventId);
+  if(!ev) return;
+  activeEvent=ev;
+  document.getElementById('eventInfo').textContent=ev.descripcion||'';
+  document.getElementById('eventInfo').classList.remove('hidden');
+  document.getElementById('eventName').textContent=ev.nombre;
+  document.getElementById('eventDate').textContent=ev.fecha? new Date(ev.fecha).toLocaleDateString():'';
+  document.getElementById('eventImagePreview').classList.remove('hidden');
+  const initials = ev.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  document.getElementById('eventInitials').textContent=initials;
+  const imgUrl = ev.imagen_url || ev.image_url || ev.photo_url;
+  const imgEl=document.getElementById('eventImg');
+  if(imgUrl){ imgEl.src=imgUrl; imgEl.classList.remove('hidden'); document.getElementById('eventInitials').classList.add('hidden'); }
+  else { imgEl.classList.add('hidden'); document.getElementById('eventInitials').classList.remove('hidden'); }
+  await loadCategories(eventId);
+}
+async function loadCategories(eventId){
   const sel=document.getElementById('categoryId');
+  sel.innerHTML='<option>Cargando categorías...</option>';
+  const {data} = await supabaseClient.from('categories').select('*').eq('event_id', eventId).order('orden');
   sel.innerHTML='<option value="">Selecciona categoría...</option>';
   data.forEach(c=>{
     sel.innerHTML+=`<option value="${c.id}">${c.label} (${c.key})</option>`;
   });
 }
-// --- UPLOAD FOTO A DRIVE VIA APPS SCRIPT UNIFICADO (mismo que email) ---
+document.getElementById('eventId').addEventListener('change', e=>{ if(e.target.value) onEventChange(e.target.value); });
 document.getElementById('photoFile').addEventListener('change', async e=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  
-  if(file.size > 5*1024*1024){
-    alert('Foto muy grande, máx 5MB');
-    return;
-  }
-  
-  const preview = document.getElementById('photoPreview');
-  const previewImg = document.getElementById('previewImg');
-  const status = document.getElementById('uploadStatus');
-  
-  preview.classList.remove('hidden');
-  previewImg.src = URL.createObjectURL(file);
-  status.textContent = '📤 Subiendo a Drive...';
-  status.className='text-[11px] mt-2 font-mono text-amber-300';
-  
+  const file=e.target.files[0]; if(!file) return;
+  if(file.size>5*1024*1024){ alert('Máx 5MB'); return; }
+  const preview=document.getElementById('photoPreview'), previewImg=document.getElementById('previewImg'), status=document.getElementById('uploadStatus');
+  preview.classList.remove('hidden'); previewImg.src=URL.createObjectURL(file); status.textContent='📤 Subiendo a Drive...'; status.className='text-[11px] mt-2 font-mono badge badge-cream';
   try{
-    const base64 = await fileToBase64(file);
-    const payload = {
-      fileName: file.name,
-      mimeType: file.type,
-      base64Data: base64,
-      folderId: window.DRIVE_FOLDER_ID || ""
-    };
-    
-    // UNIFICADO: usa el mismo Apps Script para email y drive
-    const driveUrl = window.APPS_SCRIPT_DRIVE_URL || window.APPS_SCRIPT_URL || window.APPS_SCRIPT_EMAIL_URL;
-    
-    if(!driveUrl || driveUrl.includes('TU_ID')){
-      throw new Error('Configura APPS_SCRIPT_URL en config.js con tu URL del Apps Script UNIFICADO (appscript-unificado.gs)');
-    }
-    
-    const resp = await fetch(driveUrl, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    
-    const result = await resp.json();
-    
-    if(result.success){
-      uploadedPhotoUrl = result.url;
-      status.textContent = '✅ Subida OK a Drive: ' + result.fileName;
-      status.className='text-[11px] mt-2 font-mono text-emerald-300';
-      document.getElementById('photoUrlManual').value = result.url;
-      console.log('Foto Drive URL:', result.url);
-    } else {
-      throw new Error(result.error || 'Error subiendo');
-    }
-  }catch(err){
-    status.textContent = '❌ Error subiendo: ' + err.message + ' - Puedes pegar URL manual abajo';
-    status.className='text-[11px] mt-2 font-mono text-red-300';
-    console.error(err);
-  }
+    const base64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+    const driveUrl=window.APPS_SCRIPT_DRIVE_URL || window.APPS_SCRIPT_URL;
+    if(!driveUrl || driveUrl.includes('TU_ID')) throw new Error('Configura APPS_SCRIPT_URL en config.js');
+    const resp=await fetch(driveUrl,{method:'POST', body: JSON.stringify({fileName:file.name, mimeType:file.type, base64Data:base64, folderId: window.DRIVE_FOLDER_ID||""})});
+    const result=await resp.json();
+    if(result.success || result.ok){
+      uploadedPhotoUrl=result.url; status.textContent='✅ '+result.fileName; status.className='badge badge-green mt-2'; document.getElementById('photoUrlManual').value=result.url;
+    } else throw new Error(result.error);
+  }catch(err){ status.textContent='❌ '+err.message; status.className='badge badge-pink mt-2'; }
 });
-function fileToBase64(file){
-  return new Promise((resolve, reject)=>{
-    const reader = new FileReader();
-    reader.onload = ()=> resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 document.getElementById('groupForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  const btn=document.getElementById('btnSubmit');
-  const msg=document.getElementById('msg');
-  btn.disabled=true; btn.textContent='Registrando...';
-  msg.classList.remove('hidden');
-  msg.className='text-xs p-3 rounded-xl bg-white/10';
-  msg.textContent='Guardando...';
-  
+  const btn=document.getElementById('btnSubmit'), msg=document.getElementById('msg');
+  btn.disabled=true; btn.textContent='Registrando...'; msg.classList.add('hidden');
   try{
-    if(!activeEvent) await loadActiveEvent();
-    if(!activeEvent) throw new Error('No hay evento activo');
-    
-    const categoryId = document.getElementById('categoryId').value;
-    const tipo = document.getElementById('tipoPresentacion').value;
-    const title = document.getElementById('title').value.trim();
-    const nombreGrupo = document.getElementById('nombreGrupo').value.trim();
-    const team = document.getElementById('team').value.trim();
-    const description = document.getElementById('description').value.trim();
-    const grado = document.getElementById('grado').value.trim();
-    const duracion = document.getElementById('duracion').value.trim();
-    const contactEmail = document.getElementById('contactEmail').value.trim();
-    const contactPhone = document.getElementById('contactPhone').value.trim();
-    const tutorName = document.getElementById('tutorName').value.trim();
-    const photoUrlManual = document.getElementById('photoUrlManual').value.trim();
-    
-    const finalPhotoUrl = uploadedPhotoUrl || photoUrlManual || null;
-    
-    // Título enriquecido con tipo si no está incluido
-    let finalTitle = title;
-    if(tipo && !title.toLowerCase().includes(tipo.toLowerCase())){
-      // No prependemos, dejamos título limpio pero guardamos tipo en descripción o campo extra
-    }
-    
-    // Payload base
-    let payload = {
+    if(!activeEvent) throw new Error('Elige evento');
+    const payloadExt={
       event_id: activeEvent.id,
-      category_id: categoryId,
-      title: finalTitle,
-      team: team,
-      description: description,
-      photo_url: finalPhotoUrl,
+      category_id: document.getElementById('categoryId').value,
+      title: document.getElementById('title').value.trim(),
+      team: document.getElementById('team').value.trim(),
+      description: document.getElementById('description').value.trim(),
+      photo_url: uploadedPhotoUrl || document.getElementById('photoUrlManual').value.trim() || null,
       activo: false,
-    };
-    
-    let payloadExt = {
-      ...payload,
-      contact_email: contactEmail,
-      contact_phone: contactPhone,
-      tutor_name: tutorName,
+      contact_email: document.getElementById('contactEmail').value.trim(),
+      contact_phone: document.getElementById('contactPhone').value.trim(),
+      tutor_name: document.getElementById('tutorName').value.trim(),
       estado_registro: 'PENDIENTE',
-      nombre_grupo: nombreGrupo || null,
-      tipo_presentacion: tipo,
-      grado_seccion: grado,
-      duracion_estimada: duracion
+      nombre_grupo: document.getElementById('nombreGrupo').value.trim()||null,
+      tipo_presentacion: document.getElementById('tipoPresentacion').value,
+      grado_seccion: document.getElementById('grado').value.trim(),
+      duracion_estimada: document.getElementById('duracion').value.trim()
     };
-    
-    let inserted=null;
-    let res = await supabaseClient.from('projects').insert(payloadExt).select().single();
-    if(res.error){
-      console.warn('Fallback sin columnas extendidas:', res.error.message);
-      // Fallback: guardar info extra en description
-      const descExt = `${description}\n\n--- INFO GRUPO ---\nTipo: ${tipo}\nNombre Grupo: ${nombreGrupo}\nGrado: ${grado}\nDuración: ${duracion}\nEmail: ${contactEmail}\nTel: ${contactPhone}\nTutor: ${tutorName}`;
-      payload.description = descExt;
-      // Intentar con nombre_grupo en team si no hay columna
-      if(nombreGrupo){
-        payload.team = `${nombreGrupo} | ${team}`;
-      }
-      const res2 = await supabaseClient.from('projects').insert(payload).select().single();
-      if(res2.error) throw res2.error;
-      inserted = res2.data;
-    } else {
-      inserted = res.data;
+    let {data, error}=await supabaseClient.from('projects').insert(payloadExt).select().single();
+    if(error){
+      const fallback={event_id:payloadExt.event_id, category_id:payloadExt.category_id, title:payloadExt.title, team:(payloadExt.nombre_grupo? payloadExt.nombre_grupo+' | ':'')+payloadExt.team, description: payloadExt.description + "\nTipo:"+payloadExt.tipo_presentacion, photo_url:payloadExt.photo_url, activo:false};
+      const r2=await supabaseClient.from('projects').insert(fallback).select().single();
+      if(r2.error) throw r2.error;
+      data=r2.data;
     }
-    
     document.getElementById('groupForm').classList.add('hidden');
     document.getElementById('successSection').classList.remove('hidden');
-    document.getElementById('successId').textContent = `ID: ${inserted.id.slice(0,8)} - ${inserted.title} - PENDIENTE`;
-    if(finalPhotoUrl){
-      const img=document.getElementById('successPhoto');
-      img.src=finalPhotoUrl;
-      img.classList.remove('hidden');
-    }
-    msg.classList.add('hidden');
-    
-  }catch(err){
-    msg.classList.remove('hidden');
-    msg.className='text-xs p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200';
-    msg.textContent='Error: '+err.message;
-  } finally {
-    btn.disabled=false; btn.textContent='📝 Registrar Grupo / Presentación';
-  }
+    document.getElementById('successId').textContent=`${data.title} - PENDIENTE`;
+    if(payloadExt.photo_url){ const img=document.getElementById('successPhoto'); img.src=payloadExt.photo_url; img.classList.remove('hidden'); }
+  }catch(err){ msg.textContent='Error: '+err.message; msg.className='text-xs p-3 rounded-[12px] bg-pink/10 border border-pink/20 text-pink'; msg.classList.remove('hidden'); }
+  finally{ btn.disabled=false; btn.textContent='📝 Registrar grupo'; }
 });
-window.addEventListener('load', async()=>{
-  initClient();
-  await loadActiveEvent();
-});
+window.addEventListener('load', async()=>{ initClient(); await loadEvents(); });
 </script>
 </body>
 </html>

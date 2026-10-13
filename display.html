@@ -3,194 +3,291 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bienvenida - Display v2 FIX</title>
+<title>Display - Feria San Martín</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script>
-window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
-window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
-</script>
-<script src="config.js?v=7"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet">
-<style>body{font-family:'Plus Jakarta Sans',sans-serif}</style>
-</head>
-<body class="min-h-screen bg-[#020617] text-white overflow-hidden flex items-center justify-center relative">
-  <div class="fixed inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(56,189,248,0.12),transparent_35%),radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.1),transparent_30%)]"></div>
-  <div class="relative w-full h-screen p-6 md:p-10 flex items-center justify-center">
-    <div class="w-full max-w-6xl bg-white/[0.04] border border-white/10 rounded-[40px] p-8 md:p-12 backdrop-blur-2xl shadow-2xl relative overflow-hidden min-h-[560px] flex flex-col">
-      <div class="w-full text-center text-[clamp(0.5rem,2.8vw,1.25rem)] font-black tracking-wide opacity-60">EVENTO EN VIVO</div>
-      <div class="flex justify-between items-start mt-4">
-        <div id="eventTag" class="bg-white/10 px-4 py-2 rounded-full text-xs font-bold text-white/60">Conectando...</div>
-        <div class="flex gap-2">
-          <div id="status" class="bg-white/10 px-3 py-2 rounded-full text-[10px] font-mono">Iniciando...</div>
-          <button id="voiceToggle" class="bg-white/10 px-4 py-2 rounded-full text-xs font-bold">🔇 Sonido</button>
-        </div>
-      </div>
-      <div id="waitingState" class="flex-1 flex flex-col items-center justify-center text-center py-20">
-        <h3 id="waitingMessage" class="text-5xl md:text-7xl font-black leading-[0.95] max-w-5xl">Esperando ingresos...</h3>
-        <p class="text-white/40 mt-6 text-lg">Tu bienvenida aparecerá aquí automáticamente</p>
-        <p id="debugLog" class="mt-4 text-[11px] font-mono text-white/20"></p>
-        <div id="queueBadge" class="hidden mt-6 bg-sky-500/10 border border-sky-500/20 text-sky-200 px-5 py-2.5 rounded-full text-sm font-bold"></div>
-        <button id="btnTestWelcome" class="mt-8 text-xs bg-white/10 px-4 py-2 rounded-full">Probar bienvenida (test)</button>
-      </div>
-      <div id="welcomeCard" class="hidden flex-1 flex flex-col justify-center">
-        <p class="text-emerald-300 text-xs font-bold tracking-widest">● BIENVENIDO</p>
-        <h2 id="welcomeTitle" class="mt-4 text-5xl md:text-7xl font-black leading-[0.85]"></h2>
-        <p id="welcomeSubtitle" class="mt-6 text-xl text-white/70"></p>
-        <p id="welcomeEvent" class="mt-2 text-violet-300 font-bold"></p>
-        <p id="welcomeMsg" class="mt-8 text-3xl md:text-6xl leading-tight font-black text-white max-w-5xl"></p>
-      </div>
-    </div>
-  </div>
-<script>
-let supabaseClient=null;
-let isShowing=false, localQueue=[], voiceEnabled=localStorage.getItem('voice_enabled')==='true';
-let activeEvent=null;
-const welcomeCard=document.getElementById('welcomeCard'), waitingState=document.getElementById('waitingState'), waitingMessage=document.getElementById('waitingMessage'), welcomeTitle=document.getElementById('welcomeTitle'), welcomeSubtitle=document.getElementById('welcomeSubtitle'), welcomeEvent=document.getElementById('welcomeEvent'), welcomeMsg=document.getElementById('welcomeMsg'), queueBadge=document.getElementById('queueBadge'), eventTag=document.getElementById('eventTag'), statusEl=document.getElementById('status'), debugLog=document.getElementById('debugLog');
-function log(t){
-  statusEl.textContent=t;
-  debugLog.textContent=new Date().toLocaleTimeString()+' - '+t;
-  console.log(t);
-}
-function initClient(){
-  const url = window.SUPABASE_URL;
-  const key = window.SUPABASE_ANON_KEY;
-  if(!window.supabase?.createClient){
-    log('ERROR CDN no cargó');
-    eventTag.textContent='Error CDN';
-    return null;
-  }
-  try{
-    supabaseClient = window.supabase.createClient(url, key);
-    window.supabaseClient = supabaseClient;
-    log('Cliente OK: '+key.slice(0,20)+'...');
-    return supabaseClient;
-  }catch(e){
-    log('Error cliente: '+e.message);
-    return null;
-  }
-}
-function getVoice(){const v=speechSynthesis.getVoices(); return v.find(x=>x.lang==='es-PE')||v[0];}
-async function loadActiveEvent(){
-  if(!supabaseClient){ log('Sin cliente'); return null; }
-  try{
-    log('Buscando evento activo...');
-    const {data, error} = await supabaseClient.from('events').select('*').eq('activo', true).order('created_at',{ascending:false}).limit(1).single();
-    if(error || !data){
-      log('Sin evento activo: '+(error?.message||'no data'));
-      eventTag.textContent='Sin evento activo';
-      waitingMessage.textContent='No hay evento activo - créalo en admin.html';
-      return null;
-    }
-    activeEvent=data;
-    eventTag.textContent=data.nombre;
-    eventTag.className='bg-lime-300 text-black px-4 py-2 rounded-full text-xs font-bold';
-    // Mostrar mensaje bienvenida configurado
-    waitingMessage.textContent = data.mensaje_bienvenida ? data.mensaje_bienvenida.replace('[NOMBRE]','').slice(0,80) : 'Esperando ingresos...';
-    log('Evento activo: '+data.nombre+' | delay '+data.welcome_delay_seconds+'s dur '+data.welcome_duration_seconds+'s');
-    return data;
-  }catch(err){
-    log('Error loadActiveEvent: '+err.message);
-    return null;
-  }
-}
-function formatWelcomeMessage(template, reg){
-  if(!template) return '¡Qué alegría que estés aquí!';
-  return template.replace('[NOMBRE]', reg.nombres || '').replace('[APELLIDOS]', reg.apellidos || '');
-}
-function showWelcome(reg){
-  isShowing=true;
-  waitingState.classList.add('hidden');
-  welcomeCard.classList.remove('hidden');
-  
-  welcomeTitle.textContent = `¡Hola! ${reg.nombres} ${reg.apellidos}`;
-  welcomeSubtitle.textContent = `${reg.parentesco||''} ${reg.nombre_estudiante? 'de '+reg.nombre_estudiante : ''}`.trim();
-  welcomeEvent.textContent = activeEvent?.nombre || '';
-  welcomeMsg.textContent = formatWelcomeMessage(activeEvent?.mensaje_bienvenida, reg);
-  // Confetti
-  for(let k=0;k<2;k++) setTimeout(()=>{for(let i=0;i<25;i++){const c=document.createElement('div'); c.className='absolute w-3 h-3 rounded-full'; c.style.left=Math.random()*90+'%'; c.style.top='10%'; c.style.background=['#38bdf8','#a78bfa','#f472b6'][Math.floor(Math.random()*3)]; document.body.appendChild(c); c.animate([{transform:'translateY(0)',opacity:1},{transform:'translateY(600px)',opacity:0}],{duration:3000,fill:'forwards'}); setTimeout(()=>c.remove(),4000);}},k*300);
-  const duration = (activeEvent?.welcome_duration_seconds || 9) * 1000;
-  const delayBeforeNext = activeEvent?.welcome_delay_seconds || 0;
-  let voiceDone=!voiceEnabled, minDone=false;
-  function finish(){
-    if(voiceDone && minDone){
-      welcomeCard.classList.add('hidden');
-      if(localQueue.length>0){
-        const n=localQueue.shift();
-        queueBadge.textContent=localQueue.length?localQueue.length+' en espera':'';
-        if(!localQueue.length) queueBadge.classList.add('hidden');
-        setTimeout(()=>showWelcome(n), delayBeforeNext*1000 || 800);
-      } else {
-        waitingState.classList.remove('hidden');
-        isShowing=false;
-        log('Esperando siguiente ingreso...');
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        cream: '#fffeea',
+        cream2: '#fff9c5',
+        yellowLight: '#fff485',
+        yellow: '#ffe846',
+        amberBright: '#ffd81b',
+        amber: '#ffba08',
+        orange: '#e28d00',
+        orangeBurnt: '#bb6302',
+        brownOrange: '#984c08',
+        brownDark: '#7c3e0b',
+        brownDeep: '#482000',
+        pink: '#fe1954',
+        cyan: '#04bdcf',
       }
     }
   }
-  if(voiceEnabled){
-    const frase=`¡Bienvenido! ${reg.nombres} ${reg.apellidos}. ${reg.parentesco||''} ${reg.nombre_estudiante? 'de '+reg.nombre_estudiante : ''}. ${activeEvent?.mensaje_bienvenida ? formatWelcomeMessage(activeEvent.mensaje_bienvenida, reg) : 'Que alegría que estés aquí'}`;
-    const u=new SpeechSynthesisUtterance(frase); u.lang='es-PE'; u.rate=0.9;
-    const v=getVoice(); if(v) u.voice=v;
-    u.onend=()=>{voiceDone=true; setTimeout(finish,800);};
-    u.onerror=()=>{voiceDone=true; finish();};
-    speechSynthesis.speak(u);
-    log('Voz: '+frase.slice(0,60)+'...');
-  } else voiceDone=true;
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=11"></script>
+<link rel="stylesheet" href="styles.css?v=11">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-cream text-brownDeep overflow-hidden flex flex-col">
+<!-- Top bar with controls -->
+<div class="w-full px-6 md:px-10 py-4 flex justify-between items-center bg-white/60 backdrop-blur-xl border-b border-brownDeep/5 sticky top-0 z-20">
+  <div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-full bg-brownDeep text-cream flex items-center justify-center font-black text-sm">SM</div>
+    <span class="font-bold text-sm tracking-tight">Display Feria</span>
+    <span id="eventTag" class="ml-3 badge badge-cream">Conectando...</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="text-[11px] font-bold tracking-widest opacity-40">BIENVENIDA</span>
+    <div id="welcomeToggle" class="toggle active" title="Apagar / Encender bienvenida">
+      <div class="toggle-knob"></div>
+    </div>
+    <button id="voiceToggle" class="btn-ghost text-xs py-2 px-4 ml-2">🔇 Sonido</button>
+    <div id="queueBadge" class="hidden badge badge-brown ml-2"></div>
+  </div>
+</div>
+<!-- Main display area -->
+<div class="flex-1 w-full flex items-center justify-center p-6 md:p-10 relative">
+  <!-- Background decorative -->
+  <div class="absolute inset-0 pointer-events-none opacity-[0.04]" style="background-image: radial-gradient(var(--c-brown-deep) 1px, transparent 1px); background-size: 24px 24px;"></div>
   
+  <div class="relative w-full max-w-6xl">
+    <!-- WAITING STATE - Título evento centrado grande + icono cuadrado -->
+    <div id="waitingState" class="card p-10 md:p-16 text-center">
+      <div class="flex flex-col items-center justify-center gap-8">
+        <!-- Square icon / image -->
+        <div id="eventIconContainer" class="flex justify-center">
+          <div id="eventSquare" class="event-square w-[112px] h-[112px] text-[42px] rounded-[28px]">
+            <span id="eventInitials">SM</span>
+            <img id="eventImage" class="hidden w-full h-full object-cover" alt="Evento">
+          </div>
+        </div>
+        <!-- Título centrado y más grande -->
+        <div class="space-y-4 max-w-4xl">
+          <h1 id="eventTitle" class="font-display font-black text-[clamp(2.5rem,6vw,5.5rem)] leading-[0.85] tracking-tight text-brownDeep">
+            Esperando evento...
+          </h1>
+          <p id="eventDesc" class="text-[clamp(1rem,2vw,1.25rem)] leading-snug opacity-60 max-w-2xl mx-auto"></p>
+          <div id="eventMeta" class="flex justify-center gap-2 flex-wrap pt-2">
+            <span id="eventDate" class="badge badge-cream"></span>
+            <span id="eventStatus" class="badge badge-amber">En vivo</span>
+          </div>
+        </div>
+        <!-- Mensaje espera -->
+        <div class="pt-8 border-t border-brownDeep/5 w-full">
+          <p id="waitingMessage" class="text-2xl md:text-3xl font-bold opacity-30">Esperando ingresos...</p>
+          <p class="text-sm opacity-40 mt-3">La bienvenida aparecerá aquí automáticamente cuando escaneen QR</p>
+        </div>
+      </div>
+    </div>
+    <!-- WELCOME CARD -->
+    <div id="welcomeCard" class="hidden card p-10 md:p-14 overflow-hidden relative">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-amber/20 rounded-full blur-[60px] -translate-y-32 translate-x-32"></div>
+      <div class="absolute bottom-0 left-0 w-80 h-80 bg-cyan/10 rounded-full blur-[60px] translate-y-32 -translate-x-32"></div>
+      
+      <div class="relative flex flex-col md:flex-row gap-10 items-start">
+        <!-- Avatar / initials -->
+        <div id="welcomeAvatar" class="event-square w-[120px] h-[120px] text-4xl bg-brownDeep text-cream shrink-0">👋</div>
+        
+        <div class="flex-1 space-y-6">
+          <div>
+            <p class="badge badge-brown mb-4">● BIENVENIDO</p>
+            <h2 id="welcomeTitle" class="font-display font-black text-[clamp(2rem,5vw,4.5rem)] leading-[0.9]"></h2>
+            <p id="welcomeSubtitle" class="mt-4 text-xl opacity-70"></p>
+            <p id="welcomeEvent" class="mt-2 badge badge-amber"></p>
+          </div>
+          
+          <div class="bg-cream2 rounded-[20px] p-6 md:p-8 border border-brownDeep/5">
+            <p id="welcomeMsg" class="font-display text-[clamp(1.5rem,3vw,2.5rem)] leading-tight font-black"></p>
+          </div>
+          <div class="flex gap-2">
+            <span id="welcomeId" class="badge badge-cream font-mono text-[10px]"></span>
+            <span id="welcomeTime" class="text-xs opacity-40"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- PAUSED STATE -->
+    <div id="pausedState" class="hidden card p-12 text-center bg-brownDeep text-cream">
+      <div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6 text-2xl">⏸️</div>
+      <h3 class="text-3xl font-black">Bienvenida pausada</h3>
+      <p class="opacity-60 mt-3">Los ingresos se siguen registrando pero no se muestran en pantalla. Activa el toggle arriba para reanudar.</p>
+      <p id="pausedQueue" class="mt-6 badge badge-amber"></p>
+    </div>
+  </div>
+</div>
+<script>
+let isShowing=false, localQueue=[], voiceEnabled=localStorage.getItem('voice_enabled')==='true';
+let welcomeEnabled = localStorage.getItem('welcome_enabled') !== 'false'; // true por defecto
+let activeEvent=null;
+const waitingState=document.getElementById('waitingState'), welcomeCard=document.getElementById('welcomeCard'), pausedState=document.getElementById('pausedState');
+const eventTitle=document.getElementById('eventTitle'), eventDesc=document.getElementById('eventDesc'), eventSquare=document.getElementById('eventSquare'), eventImage=document.getElementById('eventImage'), eventInitials=document.getElementById('eventInitials'), eventTag=document.getElementById('eventTag'), eventDate=document.getElementById('eventDate'), waitingMessage=document.getElementById('waitingMessage'), queueBadge=document.getElementById('queueBadge');
+const welcomeTitle=document.getElementById('welcomeTitle'), welcomeSubtitle=document.getElementById('welcomeSubtitle'), welcomeEvent=document.getElementById('welcomeEvent'), welcomeMsg=document.getElementById('welcomeMsg'), welcomeId=document.getElementById('welcomeId'), welcomeTime=document.getElementById('welcomeTime'), welcomeAvatar=document.getElementById('welcomeAvatar');
+const welcomeToggle=document.getElementById('welcomeToggle');
+function getVoice(){const v=speechSynthesis.getVoices(); return v.find(x=>x.lang==='es-PE')||v[0];}
+function updateToggleUI(){
+  if(welcomeEnabled){
+    welcomeToggle.classList.add('active');
+  } else {
+    welcomeToggle.classList.remove('active');
+  }
+}
+async function loadActiveEvent(){
+  const client = window.initSupabaseClient ? window.initSupabaseClient() : window.supabaseClient;
+  if(!client){ eventTag.textContent='Error cliente'; return null; }
+  const {data, error} = await client.from('events').select('*').eq('activo', true).order('created_at',{ascending:false}).limit(1).single();
+  if(error || !data){ 
+    eventTag.textContent='Sin evento'; 
+    eventTitle.textContent='No hay evento activo';
+    waitingMessage.textContent='Configura un evento en admin.html';
+    return null; 
+  }
+  activeEvent=data;
+  eventTag.textContent=data.nombre;
+  eventTag.className='badge badge-amber';
+  
+  // Título centrado grande
+  eventTitle.textContent=data.nombre;
+  eventDesc.textContent=data.descripcion||'';
+  if(data.fecha){ eventDate.textContent=new Date(data.fecha).toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long'}); eventDate.classList.remove('hidden'); }
+  
+  // Imagen cuadrada del evento - si no hay, usa iniciales y ocupa espacio con otros elementos
+  const imgUrl = data.imagen_url || data.image_url || data.logo_url || data.photo_url || null;
+  const iconContainer = document.getElementById('eventIconContainer');
+  if(imgUrl){
+    eventImage.src=imgUrl;
+    eventImage.classList.remove('hidden');
+    eventInitials.classList.add('hidden');
+    iconContainer.classList.remove('hidden');
+  } else {
+    // Si no hay imagen, mostrar iniciales del evento
+    const initials = data.nombre.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    eventInitials.textContent=initials||'SM';
+    eventImage.classList.add('hidden');
+    eventInitials.classList.remove('hidden');
+    iconContainer.classList.remove('hidden');
+    // Si quieres que ocupe espacio con otros elementos cuando no hay imagen, puedes ocultar el contenedor:
+    // iconContainer.classList.add('hidden'); // descomenta para ocupar espacio
+  }
+  
+  waitingMessage.textContent=data.mensaje_bienvenida || '¡Bienvenidos a la Feria!';
+  return data;
+}
+function showWelcome(reg){
+  if(!welcomeEnabled){
+    localQueue.push(reg);
+    updateQueueBadge();
+    return;
+  }
+  isShowing=true; 
+  waitingState.classList.add('hidden'); 
+  pausedState.classList.add('hidden');
+  welcomeCard.classList.remove('hidden');
+  
+  welcomeTitle.textContent = `${reg.nombres} ${reg.apellidos}`;
+  welcomeSubtitle.textContent = `${reg.parentesco||''} ${reg.nombre_estudiante? 'de ' + reg.nombre_estudiante : ''}`.trim();
+  welcomeEvent.textContent = activeEvent?.nombre || '';
+  welcomeMsg.textContent = (activeEvent?.mensaje_bienvenida || '¡Qué alegría que estés aquí!').replace('[NOMBRE]', reg.nombres);
+  welcomeId.textContent = reg.id.slice(0,8);
+  welcomeTime.textContent = new Date().toLocaleTimeString();
+  welcomeAvatar.textContent = reg.nombres[0]?.toUpperCase() || '👋';
+  // Confetti con paleta
+  for(let k=0;k<2;k++) setTimeout(()=>{for(let i=0;i<20;i++){const c=document.createElement('div'); c.className='absolute w-3 h-3 rounded-full'; c.style.left=Math.random()*100+'%'; c.style.top='5%'; c.style.background=['#ffba08','#fe1954','#04bdcf','#ffd81b'][Math.floor(Math.random()*4)]; document.body.appendChild(c); c.animate([{transform:'translateY(0) rotate(0)',opacity:1},{transform:`translateY(${window.innerHeight}px) rotate(720deg)`,opacity:0}],{duration:3000+Math.random()*1000,fill:'forwards'}); setTimeout(()=>c.remove(),4000);}},k*200);
+  const duration = (activeEvent?.welcome_duration_seconds || 8) * 1000;
+  const delayBeforeNext = activeEvent?.welcome_delay_seconds || 0;
+  let voiceDone=!voiceEnabled, minDone=false;
+  function finish(){ 
+    if(voiceDone && minDone){ 
+      welcomeCard.classList.add('hidden'); 
+      if(localQueue.length>0){
+        const n=localQueue.shift(); 
+        updateQueueBadge();
+        setTimeout(()=>showWelcome(n), delayBeforeNext*1000 || 600);
+      } else{ 
+        if(welcomeEnabled){
+          waitingState.classList.remove('hidden'); 
+        } else {
+          pausedState.classList.remove('hidden');
+        }
+        isShowing=false; 
+      } 
+    } 
+  }
+  if(voiceEnabled){
+    const frase=`¡Bienvenido! ${reg.nombres} ${reg.apellidos}. ${reg.parentesco} de ${reg.nombre_estudiante}. ${activeEvent.mensaje_bienvenida}`;
+    const u=new SpeechSynthesisUtterance(frase); u.lang='es-PE'; u.rate=0.9; const v=getVoice(); if(v) u.voice=v;
+    u.onend=()=>{voiceDone=true; setTimeout(finish,800);}; speechSynthesis.speak(u);
+  } else voiceDone=true;
   setTimeout(()=>{minDone=true; finish();}, duration);
 }
+function updateQueueBadge(){
+  if(localQueue.length>0){
+    queueBadge.classList.remove('hidden');
+    queueBadge.textContent=localQueue.length + ' en espera';
+    document.getElementById('pausedQueue').textContent = localQueue.length + ' ingresos en cola';
+  } else {
+    queueBadge.classList.add('hidden');
+  }
+}
 async function init(){
-  const client = initClient();
-  if(!client) return;
+  updateToggleUI();
+  const client = window.initSupabaseClient ? window.initSupabaseClient() : null;
+  if(!client){ eventTag.textContent='Error config.js'; return; }
   activeEvent = await loadActiveEvent();
   if(!activeEvent) return;
-  log('Suscribiendo a Realtime...');
-  // Suscripción Realtime - reemplaza polling Apps Script
-  const channel = supabaseClient.channel('registrations-checkins-display')
+  // Suscripción Realtime
+  client.channel('registrations-checkins')
     .on('postgres_changes', {event:'UPDATE', schema:'public', table:'registrations', filter:`event_id=eq.${activeEvent.id}`}, payload=>{
       const reg = payload.new;
-      log('Realtime UPDATE: '+reg.nombres+' estado='+reg.estado);
       if(reg.estado==='INGRESADO'){
-        if(isShowing){
-          localQueue.push(reg);
-          queueBadge.classList.remove('hidden');
-          queueBadge.textContent=localQueue.length+' en espera';
-          log('En cola: '+reg.nombres+' (cola '+localQueue.length+')');
-        } else {
+        if(isShowing || !welcomeEnabled){ 
+          localQueue.push(reg); 
+          updateQueueBadge();
+          if(!welcomeEnabled){
+            pausedState.classList.remove('hidden');
+            waitingState.classList.add('hidden');
+            welcomeCard.classList.add('hidden');
+          }
+        }
+        else{
           const delay = activeEvent.welcome_delay_seconds || 0;
-          log(`Mostrando en ${delay}s: ${reg.nombres}`);
           setTimeout(()=>showWelcome(reg), delay*1000);
         }
       }
-    })
-    .on('postgres_changes', {event:'INSERT', schema:'public', table:'registrations', filter:`event_id=eq.${activeEvent.id}`}, payload=>{
-      log('Nuevo registro (no ingresado): '+payload.new.email);
-    })
-    .subscribe((status)=>{
-      log('Realtime status: '+status);
-      if(status==='SUBSCRIBED'){
-        eventTag.textContent=activeEvent.nombre+' ● EN VIVO';
-      }
-    });
+    }).subscribe();
 }
-document.getElementById('voiceToggle').addEventListener('click', ()=>{
-  if(!voiceEnabled){
-    voiceEnabled=true;
-    localStorage.setItem('voice_enabled','true');
-    speechSynthesis.speak(new SpeechSynthesisUtterance('Sonido activado'));
-    document.getElementById('voiceToggle').textContent='🔊 Sonido activado';
-    log('Sonido activado');
+// Toggle bienvenida on/off
+welcomeToggle.addEventListener('click', ()=>{
+  welcomeEnabled = !welcomeEnabled;
+  localStorage.setItem('welcome_enabled', welcomeEnabled);
+  updateToggleUI();
+  if(welcomeEnabled){
+    pausedState.classList.add('hidden');
+    if(!isShowing){
+      if(localQueue.length>0){
+        const n=localQueue.shift();
+        updateQueueBadge();
+        showWelcome(n);
+      } else {
+        waitingState.classList.remove('hidden');
+      }
+    }
   } else {
-    voiceEnabled=false;
-    localStorage.removeItem('voice_enabled');
-    speechSynthesis.cancel();
-    document.getElementById('voiceToggle').textContent='🔇 Sonido';
-    log('Sonido desactivado');
+    if(!isShowing){
+      waitingState.classList.add('hidden');
+      welcomeCard.classList.add('hidden');
+      pausedState.classList.remove('hidden');
+    }
   }
 });
-document.getElementById('btnTestWelcome').addEventListener('click', ()=>{
-  const fakeReg={nombres:'Prueba', apellidos:'Demo', nombre_estudiante:'Alumno Test', parentesco:'Papá'};
-  showWelcome(fakeReg);
+document.getElementById('voiceToggle').addEventListener('click', ()=>{
+  if(!voiceEnabled){ voiceEnabled=true; localStorage.setItem('voice_enabled','true'); speechSynthesis.speak(new SpeechSynthesisUtterance('Sonido activado')); }
+  else{ voiceEnabled=false; localStorage.removeItem('voice_enabled'); speechSynthesis.cancel(); }
+  document.getElementById('voiceToggle').textContent = voiceEnabled ? '🔊 Sonido ON' : '🔇 Sonido';
 });
 window.addEventListener('load', init);
 </script>

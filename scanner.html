@@ -3,246 +3,47 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Scanner Ingreso v2 - FIX</title>
+<title>Scanner - Feria San Martín</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', amber:'#ffba08', brownDeep:'#482000', pink:'#fe1954' } } } }</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script>
-// Fallback hardcodeado por si config.js falla por cache/const
-window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
-window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
-</script>
-<script src="config.js?v=7"></script>
+<script src="config.js?v=11"></script>
+<link rel="stylesheet" href="styles.css?v=11">
 </head>
-<body class="min-h-screen bg-[#020617] text-white flex items-center justify-center p-4">
-<div class="relative w-full max-w-[680px] bg-white/[0.05] border border-white/10 rounded-[32px] p-6">
-<div class="flex justify-between items-center">
-<h1 class="text-2xl font-extrabold">Control de ingreso v2</h1>
-<div id="eventTag" class="bg-white/10 px-3 py-1.5 rounded-full text-xs">Conectando...</div>
-</div>
-<div id="status" class="mt-2 text-[11px] font-mono text-white/30"></div>
-<div class="mt-6 rounded-[24px] overflow-hidden bg-black border border-white/10 aspect-[4/3] relative">
-<div id="reader" class="w-full h-full"></div>
-<div id="camOverlay" class="absolute inset-0 flex items-center justify-center bg-black/60 text-sm">Cámara inactiva</div>
-</div>
-<div class="mt-4 grid grid-cols-2 gap-3">
-<button id="startBtn" class="bg-white text-slate-900 font-extrabold py-4 rounded-2xl">📷 Activar cámara</button>
-<button id="stopBtn" class="hidden bg-white/10 text-white font-bold py-4 rounded-2xl">⏸️ Pausar</button>
-</div>
-<!-- Entrada manual por si la cámara falla -->
-<div class="mt-4 bg-white/[0.04] border border-white/10 rounded-2xl p-3">
-<p class="text-[11px] text-white/40">Si la cámara falla, ingresa ID manual:</p>
-<div class="mt-2 flex gap-2">
-<input id="manualId" placeholder="Pega ID del QR (TEST-... o UUID)" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2.5 text-sm font-mono">
-<button id="btnManual" class="bg-lime-300 text-black px-4 rounded-xl font-bold text-sm">Validar</button>
-</div>
-</div>
-<div id="message" class="mt-4 p-4 rounded-2xl bg-white/[0.06] text-sm text-center">Toca activar cámara. Asegúrate de dar permiso de cámara.</div>
-<div id="validationDetails" class="hidden mt-4 p-4 rounded-2xl bg-white/[0.06] border border-white/10 text-sm"></div>
-<button id="nextBtn" class="hidden mt-4 w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">🔄 Escanear otro</button>
-<div class="mt-6 text-[11px] text-white/30">
-<p>URL: <span id="debugUrl"></span> | KEY: <span id="debugKey"></span></p>
-<p id="debugLog" class="mt-1 font-mono"></p>
-</div>
-</div>
+<body class="min-h-screen bg-cream text-brownDeep p-6">
+<main class="max-w-2xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="font-display font-black text-2xl">Scanner QR</h1>
+    <span id="eventTag" class="badge badge-cream">Conectando...</span>
+  </div>
+  <div class="card p-6">
+    <div id="reader" class="rounded-[16px] overflow-hidden"></div>
+    <input id="manualId" placeholder="ID manual (si QR no lee)" class="input mt-4">
+    <button id="btnManual" class="btn-primary w-full mt-3">Validar manual</button>
+    <div id="result" class="mt-6 hidden card-cream p-5 rounded-[16px]"></div>
+  </div>
+</main>
 <script>
-let html5QrCode=null, scanning=false, activeEvent=null;
-let supabaseClient=null;
-const msg=document.getElementById('message');
-const eventTag=document.getElementById('eventTag');
-const statusEl=document.getElementById('status');
-const debugLog=document.getElementById('debugLog');
-function log(t){
-  console.log(t);
-  statusEl.textContent = t;
-  debugLog.textContent = new Date().toLocaleTimeString() + ' - ' + t;
-}
-function initClient(){
-  const url = window.SUPABASE_URL;
-  const key = window.SUPABASE_ANON_KEY;
-  document.getElementById('debugUrl').textContent = url;
-  document.getElementById('debugKey').textContent = key.slice(0,20)+'...';
-  
-  if(!window.supabase || !window.supabase.createClient){
-    log('ERROR: CDN supabase no cargó - revisa internet');
-    eventTag.textContent='Error CDN';
-    return null;
-  }
+let supabaseClient=null, activeEvent=null, html5QrCode=null;
+function initClient(){ supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY); return supabaseClient; }
+async function loadActiveEvent(){ const {data}=await supabaseClient.from('events').select('*').eq('activo',true).limit(1).single(); activeEvent=data; document.getElementById('eventTag').textContent=data?.nombre||'Sin evento'; return data; }
+async function validate(id){
+  const resultEl=document.getElementById('result'); resultEl.classList.remove('hidden'); resultEl.innerHTML='Validando...';
   try{
-    supabaseClient = window.supabase.createClient(url, key);
-    window.supabaseClient = supabaseClient;
-    log('Cliente Supabase creado OK con sb_publishable_...');
-    return supabaseClient;
-  }catch(e){
-    log('ERROR creando cliente: '+e.message);
-    eventTag.textContent='Error cliente';
-    return null;
-  }
+    const {data: reg, error} = await supabaseClient.from('registrations').select('*').eq('id', id).eq('event_id', activeEvent.id).single();
+    if(error || !reg){ resultEl.innerHTML=`<p class="text-pink font-bold">❌ No encontrado</p><p class="text-xs opacity-60">ID: ${id}</p>`; return; }
+    if(reg.estado==='INGRESADO'){ resultEl.innerHTML=`<p class="font-bold text-orange">⚠️ Ya ingresó</p><p class="font-black text-lg">${reg.nombres} ${reg.apellidos}</p><p class="text-xs opacity-60">${reg.estado} - ${reg.email}</p>`; return; }
+    const {error: upErr} = await supabaseClient.from('registrations').update({estado:'INGRESADO', checked_in_at: new Date().toISOString()}).eq('id', reg.id);
+    if(upErr) throw upErr;
+    resultEl.innerHTML=`<div class="text-center"><div class="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto text-2xl">✓</div><p class="font-display font-black text-2xl mt-3">${reg.nombres} ${reg.apellidos}</p><p class="text-sm opacity-60">${reg.nombre_estudiante} - ${reg.grado_seccion}</p><p class="badge badge-green mt-3">INGRESADO</p></div>`;
+  }catch(err){ resultEl.innerHTML=`<p class="text-pink">Error: ${err.message}</p>`; }
 }
-async function loadActiveEvent(){
-  if(!supabaseClient){ log('Sin cliente, no puedo cargar evento'); return; }
-  try{
-    log('Buscando evento activo...');
-    const {data, error} = await supabaseClient.from('events').select('*').eq('activo', true).limit(1).single();
-    if(error){
-      log('Error cargando evento: '+error.message);
-      eventTag.textContent='Sin evento activo';
-      msg.textContent='No hay evento activo. Crea uno en admin.html';
-      return;
-    }
-    if(data){
-      activeEvent=data;
-      eventTag.textContent=data.nombre;
-      eventTag.className='bg-lime-300 text-black px-3 py-1.5 rounded-full text-xs font-bold';
-      log('Evento activo: '+data.nombre);
-      msg.textContent='Evento: '+data.nombre+' - Listo para escanear';
-    }
-  }catch(err){
-    log('Excepción loadActiveEvent: '+err.message);
-    eventTag.textContent='Error';
-  }
-}
-async function onScanSuccess(decoded){
-  const id = decoded.trim();
-  if(!id) return;
-  log('QR detectado: '+id.slice(0,20));
-  msg.textContent='Verificando '+id.slice(0,8)+'...';
-  
-  if(html5QrCode && scanning){
-    try{ await html5QrCode.pause(true); document.getElementById('camOverlay').classList.remove('hidden'); document.getElementById('camOverlay').textContent='Scanner pausado - verificando...'; }catch(e){}
-    scanning=false;
-    document.getElementById('stopBtn').classList.add('hidden');
-  }
-  await validateId(id);
-}
-async function validateId(id){
-  if(!supabaseClient){ msg.textContent='🚫 Sin conexión a base'; document.getElementById('nextBtn').classList.remove('hidden'); return; }
-  if(!activeEvent){
-    await loadActiveEvent();
-    if(!activeEvent){ msg.textContent='🚫 No hay evento activo'; document.getElementById('nextBtn').classList.remove('hidden'); return; }
-  }
-  try{
-    const {data: reg, error} = await supabaseClient.from('registrations').select('*').eq('id', id).single();
-    if(error || !reg){
-      msg.textContent='🚫 QR no válido - no existe';
-      msg.className='mt-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm text-center';
-      document.getElementById('validationDetails').classList.add('hidden');
-      document.getElementById('nextBtn').classList.remove('hidden');
-      log('QR no válido: '+id);
-      return;
-    }
-    if(reg.event_id !== activeEvent.id){
-      msg.textContent='🚫 Este ticket es de otro evento';
-      msg.className='mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm text-center';
-      document.getElementById('validationDetails').innerHTML=`<b>${reg.nombres} ${reg.apellidos}</b><br>Evento diferente`;
-      document.getElementById('validationDetails').classList.remove('hidden');
-      document.getElementById('nextBtn').classList.remove('hidden');
-      return;
-    }
-    if(reg.estado === 'INGRESADO'){
-      msg.textContent=`⚠️ YA INGRESÓ a las ${new Date(reg.hora_ingreso).toLocaleTimeString()}`;
-      msg.className='mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm text-center font-bold';
-      document.getElementById('validationDetails').innerHTML=`<b>${reg.nombres} ${reg.apellidos}</b><br>DNI: ${reg.dni}<br>Alumno: ${reg.nombre_estudiante||'-'}<br><span class="text-amber-300">Ya ingresó</span>`;
-      document.getElementById('validationDetails').classList.remove('hidden');
-      document.getElementById('nextBtn').classList.remove('hidden');
-      return;
-    }
-    const {error: upErr} = await supabaseClient.from('registrations').update({estado:'INGRESADO', hora_ingreso: new Date().toISOString()}).eq('id', id);
-    if(upErr){
-      msg.textContent='Error actualizando: '+upErr.message;
-      msg.className='mt-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm text-center';
-    } else {
-      msg.textContent=`✅ BIENVENIDO: ${reg.nombres} ${reg.apellidos}`;
-      msg.className='mt-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-sm text-center font-black text-lg';
-      document.getElementById('validationDetails').innerHTML=`<b>DNI:</b> ${reg.dni}<br><b>Alumno:</b> ${reg.nombre_estudiante||'-'}<br><b>Email:</b> ${reg.email}<br><span class="text-emerald-300 font-bold">Voto habilitado: SÍ</span>`;
-      document.getElementById('validationDetails').classList.remove('hidden');
-      log('INGRESO OK: '+reg.nombres);
-    }
-    document.getElementById('nextBtn').classList.remove('hidden');
-  }catch(err){
-    log('Error validateId: '+err.message);
-    msg.textContent='Error: '+err.message;
-    document.getElementById('nextBtn').classList.remove('hidden');
-  }
-}
-async function startScanner(){
-  const readerEl = document.getElementById('reader');
-  const overlay = document.getElementById('camOverlay');
-  try{
-    html5QrCode=new Html5Qrcode('reader');
-    log('Solicitando cámara...');
-    msg.textContent='Solicitando permiso de cámara...';
-    overlay.classList.remove('hidden');
-    overlay.textContent='Iniciando cámara...';
-    
-    await html5QrCode.start(
-      {facingMode:'environment'},
-      {fps:10, qrbox:{width:250,height:250}},
-      onScanSuccess,
-      (err)=>{} // ignore scan errors
-    );
-    scanning=true;
-    overlay.classList.add('hidden');
-    document.getElementById('startBtn').classList.add('hidden');
-    document.getElementById('stopBtn').classList.remove('hidden');
-    msg.textContent='📷 Cámara activa - apunta al QR';
-    msg.className='mt-4 p-4 rounded-2xl bg-white/[0.06] text-sm text-center';
-    log('Cámara iniciada OK');
-  }catch(err){
-    log('Error iniciando cámara: '+err.message);
-    overlay.classList.remove('hidden');
-    overlay.textContent='Error cámara: '+err.message;
-    msg.textContent='Error cámara: '+err.message+' - Usa entrada manual abajo';
-    msg.className='mt-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm text-center';
-    document.getElementById('startBtn').classList.remove('hidden');
-  }
-}
-async function stopScanner(){
-  if(html5QrCode && scanning){
-    try{
-      await html5QrCode.pause(true);
-      scanning=false;
-      document.getElementById('camOverlay').classList.remove('hidden');
-      document.getElementById('camOverlay').textContent='Scanner pausado';
-      document.getElementById('stopBtn').classList.add('hidden');
-      document.getElementById('startBtn').classList.remove('hidden');
-      document.getElementById('startBtn').textContent='📷 Reanudar cámara';
-      log('Scanner pausado');
-    }catch(e){ log('Error pausando: '+e.message); }
-  }
-}
-document.getElementById('startBtn').addEventListener('click', startScanner);
-document.getElementById('stopBtn').addEventListener('click', stopScanner);
-document.getElementById('btnManual').addEventListener('click', ()=>{
-  const id=document.getElementById('manualId').value.trim();
-  if(!id){ alert('Pega ID'); return; }
-  onScanSuccess(id);
-});
-document.getElementById('manualId').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ document.getElementById('btnManual').click(); } });
-document.getElementById('nextBtn').addEventListener('click', async()=>{
-  document.getElementById('nextBtn').classList.add('hidden');
-  document.getElementById('validationDetails').classList.add('hidden');
-  document.getElementById('manualId').value='';
-  msg.textContent='Listo para escanear';
-  msg.className='mt-4 p-4 rounded-2xl bg-white/[0.06] text-sm text-center';
-  if(html5QrCode){
-    try{
-      await html5QrCode.resume();
-      scanning=true;
-      document.getElementById('camOverlay').classList.add('hidden');
-      document.getElementById('startBtn').classList.add('hidden');
-      document.getElementById('stopBtn').classList.remove('hidden');
-      log('Scanner reanudado');
-    }catch(e){
-      log('Error reanudando: '+e.message);
-      document.getElementById('startBtn').classList.remove('hidden');
-      document.getElementById('stopBtn').classList.add('hidden');
-    }
-  }
-});
 window.addEventListener('load', async()=>{
-  const client = initClient();
-  if(client) await loadActiveEvent();
+  initClient(); await loadActiveEvent();
+  html5QrCode=new Html5Qrcode("reader");
+  html5QrCode.start({facingMode:"environment"}, {fps:10, qrbox:{width:250, height:250}}, (decoded)=>{ validate(decoded.trim()); }, ()=>{});
+  document.getElementById('btnManual').addEventListener('click', ()=>{ const id=document.getElementById('manualId').value.trim(); if(id) validate(id); });
 });
 </script>
 </body>
