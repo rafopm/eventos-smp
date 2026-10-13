@@ -21,17 +21,14 @@ window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol98
 <div id="eventTag" class="bg-white/10 px-3 py-1.5 rounded-full text-xs">Conectando...</div>
 </div>
 <div id="status" class="mt-2 text-[11px] font-mono text-white/30"></div>
-
 <div class="mt-6 rounded-[24px] overflow-hidden bg-black border border-white/10 aspect-[4/3] relative">
 <div id="reader" class="w-full h-full"></div>
 <div id="camOverlay" class="absolute inset-0 flex items-center justify-center bg-black/60 text-sm">Cámara inactiva</div>
 </div>
-
 <div class="mt-4 grid grid-cols-2 gap-3">
 <button id="startBtn" class="bg-white text-slate-900 font-extrabold py-4 rounded-2xl">📷 Activar cámara</button>
 <button id="stopBtn" class="hidden bg-white/10 text-white font-bold py-4 rounded-2xl">⏸️ Pausar</button>
 </div>
-
 <!-- Entrada manual por si la cámara falla -->
 <div class="mt-4 bg-white/[0.04] border border-white/10 rounded-2xl p-3">
 <p class="text-[11px] text-white/40">Si la cámara falla, ingresa ID manual:</p>
@@ -40,32 +37,26 @@ window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol98
 <button id="btnManual" class="bg-lime-300 text-black px-4 rounded-xl font-bold text-sm">Validar</button>
 </div>
 </div>
-
 <div id="message" class="mt-4 p-4 rounded-2xl bg-white/[0.06] text-sm text-center">Toca activar cámara. Asegúrate de dar permiso de cámara.</div>
 <div id="validationDetails" class="hidden mt-4 p-4 rounded-2xl bg-white/[0.06] border border-white/10 text-sm"></div>
 <button id="nextBtn" class="hidden mt-4 w-full bg-white text-slate-900 font-extrabold py-4 rounded-2xl">🔄 Escanear otro</button>
-
 <div class="mt-6 text-[11px] text-white/30">
 <p>URL: <span id="debugUrl"></span> | KEY: <span id="debugKey"></span></p>
 <p id="debugLog" class="mt-1 font-mono"></p>
 </div>
 </div>
-
 <script>
 let html5QrCode=null, scanning=false, activeEvent=null;
 let supabaseClient=null;
-
 const msg=document.getElementById('message');
 const eventTag=document.getElementById('eventTag');
 const statusEl=document.getElementById('status');
 const debugLog=document.getElementById('debugLog');
-
 function log(t){
   console.log(t);
   statusEl.textContent = t;
   debugLog.textContent = new Date().toLocaleTimeString() + ' - ' + t;
 }
-
 function initClient(){
   const url = window.SUPABASE_URL;
   const key = window.SUPABASE_ANON_KEY;
@@ -88,7 +79,6 @@ function initClient(){
     return null;
   }
 }
-
 async function loadActiveEvent(){
   if(!supabaseClient){ log('Sin cliente, no puedo cargar evento'); return; }
   try{
@@ -112,7 +102,6 @@ async function loadActiveEvent(){
     eventTag.textContent='Error';
   }
 }
-
 async function onScanSuccess(decoded){
   const id = decoded.trim();
   if(!id) return;
@@ -124,17 +113,14 @@ async function onScanSuccess(decoded){
     scanning=false;
     document.getElementById('stopBtn').classList.add('hidden');
   }
-
   await validateId(id);
 }
-
 async function validateId(id){
   if(!supabaseClient){ msg.textContent='🚫 Sin conexión a base'; document.getElementById('nextBtn').classList.remove('hidden'); return; }
   if(!activeEvent){
     await loadActiveEvent();
     if(!activeEvent){ msg.textContent='🚫 No hay evento activo'; document.getElementById('nextBtn').classList.remove('hidden'); return; }
   }
-
   try{
     const {data: reg, error} = await supabaseClient.from('registrations').select('*').eq('id', id).single();
     if(error || !reg){
@@ -161,7 +147,6 @@ async function validateId(id){
       document.getElementById('nextBtn').classList.remove('hidden');
       return;
     }
-
     const {error: upErr} = await supabaseClient.from('registrations').update({estado:'INGRESADO', hora_ingreso: new Date().toISOString()}).eq('id', id);
     if(upErr){
       msg.textContent='Error actualizando: '+upErr.message;
@@ -180,7 +165,6 @@ async function validateId(id){
     document.getElementById('nextBtn').classList.remove('hidden');
   }
 }
-
 async function startScanner(){
   const readerEl = document.getElementById('reader');
   const overlay = document.getElementById('camOverlay');
@@ -213,7 +197,6 @@ async function startScanner(){
     document.getElementById('startBtn').classList.remove('hidden');
   }
 }
-
 async function stopScanner(){
   if(html5QrCode && scanning){
     try{
@@ -228,7 +211,6 @@ async function stopScanner(){
     }catch(e){ log('Error pausando: '+e.message); }
   }
 }
-
 document.getElementById('startBtn').addEventListener('click', startScanner);
 document.getElementById('stopBtn').addEventListener('click', stopScanner);
 document.getElementById('btnManual').addEventListener('click', ()=>{
@@ -258,7 +240,6 @@ document.getElementById('nextBtn').addEventListener('click', async()=>{
     }
   }
 });
-
 window.addEventListener('load', async()=>{
   const client = initClient();
   if(client) await loadActiveEvent();
