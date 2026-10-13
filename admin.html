@@ -3,99 +3,63 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin Panel - Seguro</title>
+<title>Admin Panel - Seguro v2</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=2"></script>
 </head>
 <body class="min-h-screen bg-[#10130c] text-white p-6">
 <main class="max-w-6xl mx-auto">
-<h1 class="text-3xl font-extrabold">Panel Admin - Seguro</h1>
-<p class="text-white/50 text-sm mt-1">Solo usuarios autenticados</p>
+<h1 class="text-3xl font-extrabold">Panel Admin - Seguro v2</h1>
+<div id="status" class="mt-2 text-xs text-white/50">Cargando...</div>
 
-<!-- LOGIN -->
 <section id="loginSection" class="mt-8 max-w-md bg-white/[0.05] border border-white/10 rounded-2xl p-6">
 <h2 class="font-bold">Iniciar sesión admin</h2>
 <form id="loginForm" class="mt-4 grid gap-3">
-<input id="loginEmail" type="email" required placeholder="eventos@colegiosanmartin.edu.pe" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<input id="loginEmail" type="email" required value="eventos@colegiosanmartin.edu.pe" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
 <input id="loginPass" type="password" required placeholder="Contraseña" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
 <button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Entrar</button>
 <p id="loginMsg" class="hidden text-sm p-3 rounded-xl"></p>
 </form>
-<p class="text-xs text-white/30 mt-3">Crea el usuario en Supabase > Authentication > Users > Add user</p>
 </section>
 
-<!-- PANEL (oculto hasta login) -->
 <div id="adminContent" class="hidden">
 <div class="mt-4 flex justify-between items-center">
 <p id="userInfo" class="text-sm text-lime-300"></p>
 <button id="logoutBtn" class="text-xs bg-white/10 px-3 py-1.5 rounded-lg">Cerrar sesión</button>
 </div>
-
-<section class="mt-8 grid lg:grid-cols-2 gap-6">
-<div class="bg-white/[0.05] border border-white/10 rounded-2xl p-6">
-<h2 class="font-bold text-lg">Crear / Editar Evento</h2>
-<form id="eventForm" class="mt-4 grid gap-3">
-<input type="hidden" id="eventId">
-<input id="evNombre" required placeholder="Nombre evento" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
-<textarea id="evDesc" placeholder="Descripción" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3"></textarea>
-<input id="evFecha" type="date" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
-<textarea id="evMensaje" placeholder="Mensaje bienvenida display" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3"></textarea>
-<div class="grid grid-cols-2 gap-3">
-<label class="text-xs">Delay bienvenida (seg)<input id="evDelay" type="number" value="0" min="0" max="10" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></label>
-<label class="text-xs">Duración (seg)<input id="evDuracion" type="number" value="9" min="3" max="20" class="w-full mt-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></label>
-</div>
-<label class="flex gap-2 text-sm"><input id="evActivo" type="checkbox"> Evento activo</label>
-<button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Guardar evento</button>
-</form>
-</div>
-
-<div class="bg-white/[0.05] border border-white/10 rounded-2xl p-6">
-<h2 class="font-bold text-lg">Eventos</h2>
-<div id="eventList" class="mt-4 grid gap-2"></div>
-</div>
-</section>
-
-<section id="detailSection" class="hidden mt-8 bg-white/[0.05] border border-white/10 rounded-2xl p-6">
-<h2 class="font-bold text-xl">Configuración: <span id="selectedEventName"></span></h2>
-<div class="mt-6 grid lg:grid-cols-2 gap-6">
-<div>
-<h3 class="font-bold">Categorías</h3>
-<form id="catForm" class="mt-3 flex gap-2"><input id="catKey" required placeholder="key" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"><input id="catLabel" required placeholder="Label" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"><button class="bg-white text-black px-4 rounded-xl font-bold">+</button></form>
-<div id="catList" class="mt-4 grid gap-2"></div>
-</div>
-<div>
-<h3 class="font-bold">Proyectos</h3>
-<form id="projForm" class="mt-3 grid gap-2">
-<select id="projCat" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2"></select>
-<input id="projTitle" required placeholder="Título proyecto" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
-<input id="projTeam" placeholder="Equipo" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
-<input id="projPhoto" placeholder="URL foto" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
-<button class="bg-white text-black font-bold py-2 rounded-xl">Agregar</button>
-</form>
-<div id="projList" class="mt-4 grid gap-2"></div>
-</div>
-</div>
-<div class="mt-8">
-<h3 class="font-bold">Control votación</h3>
-<div id="voteControls" class="mt-3"></div>
+<div id="eventList" class="mt-6 grid gap-2"></div>
 <div class="mt-6">
-<h4 class="font-bold text-sm text-white/60">Registros</h4>
-<div id="regList" class="mt-2 max-h-96 overflow-auto grid gap-1 text-sm"></div>
+<h2 class="font-bold">Crear Evento</h2>
+<form id="eventForm" class="mt-3 grid gap-3 max-w-lg">
+<input id="evNombre" required placeholder="Nombre evento" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<textarea id="evMensaje" placeholder="Mensaje bienvenida" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3"></textarea>
+<div class="grid grid-cols-2 gap-3">
+<input id="evDelay" type="number" value="0" placeholder="Delay seg" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
+<input id="evDuracion" type="number" value="9" placeholder="Duración seg" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
 </div>
+<label class="flex gap-2 text-sm"><input id="evActivo" type="checkbox"> Activo</label>
+<button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Guardar</button>
+</form>
 </div>
-</section>
 </div>
 </main>
 <script>
-let selectedEventId=null;
+let supabaseClient;
+function initClient(){
+  if(!window.SUPABASE_URL){ document.getElementById('status').textContent='ERROR: config.js no cargó - haz Ctrl+Shift+R'; return null; }
+  const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  window.supabaseClient = client;
+  document.getElementById('status').textContent=`Conectado a ${window.SUPABASE_URL}`;
+  return client;
+}
 
 async function checkSession(){
-  const {data: {session}} = await supabase.auth.getSession();
+  const {data: {session}} = await supabaseClient.auth.getSession();
   if(session){
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('adminContent').classList.remove('hidden');
-    document.getElementById('userInfo').textContent = `Logueado: ${session.user.email}`;
+    document.getElementById('userInfo').textContent=`Logueado: ${session.user.email}`;
     loadEvents();
   } else {
     document.getElementById('loginSection').classList.remove('hidden');
@@ -108,86 +72,42 @@ document.getElementById('loginForm').addEventListener('submit', async e=>{
   const email=document.getElementById('loginEmail').value.trim();
   const pass=document.getElementById('loginPass').value;
   const msg=document.getElementById('loginMsg');
-  const {data, error} = await supabase.auth.signInWithPassword({email, password: pass});
-  if(error){ msg.classList.remove('hidden'); msg.className='text-sm p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200'; msg.textContent=error.message; return; }
+  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password: pass});
+  if(error){ msg.classList.remove('hidden'); msg.textContent=error.message; msg.className='text-sm p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200'; return; }
   checkSession();
 });
 
-document.getElementById('logoutBtn').addEventListener('click', async()=>{
-  await supabase.auth.signOut();
-  location.reload();
-});
+document.getElementById('logoutBtn').addEventListener('click', async()=>{ await supabaseClient.auth.signOut(); location.reload(); });
 
-// --- resto igual que admin anterior ---
 async function loadEvents(){
-  const {data, error} = await supabase.from('events').select('*').order('created_at',{ascending:false});
-  if(error){ console.error(error); return; }
+  const {data, error} = await supabaseClient.from('events').select('*').order('created_at',{ascending:false});
   const list=document.getElementById('eventList'); list.innerHTML='';
+  if(error){ list.innerHTML=`<p class="text-red-300">Error: ${error.message}</p>`; return; }
   data.forEach(ev=>{
-    const div=document.createElement('div'); div.className='flex justify-between items-center p-3 rounded-xl bg-white/[0.04] border border-white/10';
-    div.innerHTML=`<div><p class="font-bold">${ev.nombre} ${ev.activo?'● ACTIVO':''}</p><p class="text-xs text-white/50">Delay ${ev.welcome_delay_seconds}s / Dur ${ev.welcome_duration_seconds}s</p></div><div class="flex gap-2"><button class="text-xs bg-white text-black px-3 py-1 rounded-lg font-bold" onclick="selectEvent('${ev.id}')">Configurar</button><button class="text-xs bg-white/10 px-3 py-1 rounded-lg" onclick="editEvent('${ev.id}')">Editar</button></div>`;
+    const div=document.createElement('div'); div.className='p-3 rounded-xl bg-white/[0.04] border border-white/10';
+    div.textContent=`${ev.nombre} ${ev.activo?'● ACTIVO':''} - delay ${ev.welcome_delay_seconds}s`;
     list.appendChild(div);
   });
 }
-async function editEvent(id){
-  const {data} = await supabase.from('events').select('*').eq('id',id).single();
-  document.getElementById('eventId').value=data.id;
-  document.getElementById('evNombre').value=data.nombre;
-  document.getElementById('evDesc').value=data.descripcion||'';
-  document.getElementById('evFecha').value=data.fecha||'';
-  document.getElementById('evMensaje').value=data.mensaje_bienvenida||'';
-  document.getElementById('evDelay').value=data.welcome_delay_seconds||0;
-  document.getElementById('evDuracion').value=data.welcome_duration_seconds||9;
-  document.getElementById('evActivo').checked=data.activo;
-}
-async function selectEvent(id){
-  selectedEventId=id;
-  const {data: ev} = await supabase.from('events').select('*').eq('id',id).single();
-  document.getElementById('selectedEventName').textContent=ev.nombre;
-  document.getElementById('detailSection').classList.remove('hidden');
-  loadCategories(); loadProjects(); loadVoteControls(); loadRegs();
-}
-async function loadCategories(){
-  const {data} = await supabase.from('categories').select('*').eq('event_id', selectedEventId).order('orden');
-  const list=document.getElementById('catList'); list.innerHTML=''; const sel=document.getElementById('projCat'); sel.innerHTML='';
-  data.forEach(c=>{
-    list.innerHTML+=`<div class="flex justify-between p-2 rounded-lg bg-white/[0.04] border border-white/10"><span>${c.key} - ${c.label}</span><button onclick="deleteCat('${c.id}')" class="text-xs text-red-300">x</button></div>`;
-    sel.innerHTML+=`<option value="${c.id}">${c.label}</option>`;
-  });
-}
-async function loadProjects(){
-  const {data} = await supabase.from('projects').select('*, categories(label)').eq('event_id', selectedEventId).order('orden');
-  const list=document.getElementById('projList'); list.innerHTML='';
-  data.forEach(p=>{ list.innerHTML+=`<div class="p-2 rounded-lg bg-white/[0.04] border border-white/10 text-sm"><b>${p.title}</b> - ${p.categories?.label||''}<br><span class="text-white/50">${p.team||''}</span></div>`; });
-}
-async function loadVoteControls(){
-  const {data} = await supabase.from('categories').select('*').eq('event_id', selectedEventId);
-  const cont=document.getElementById('voteControls'); cont.innerHTML='';
-  data.forEach(c=>{
-    const row=document.createElement('div'); row.className='flex justify-between items-center p-3 rounded-xl bg-white/[0.04] border border-white/10';
-    row.innerHTML=`<span>${c.label} - ${c.votacion_abierta?'ABIERTA':'CERRADA'}</span><button class="px-4 py-2 rounded-lg font-bold ${c.votacion_abierta?'bg-white/10':'bg-lime-300 text-black'}" onclick="toggleVote('${c.id}', ${!c.votacion_abierta})">${c.votacion_abierta?'Cerrar':'Abrir'} votación</button>`;
-    cont.appendChild(row);
-  });
-}
-async function loadRegs(){
-  const {data} = await supabase.from('registrations').select('*').eq('event_id', selectedEventId).order('hora_registro',{ascending:false}).limit(100);
-  const list=document.getElementById('regList'); list.innerHTML='';
-  data.forEach(r=>{ list.innerHTML+=`<div class="p-2 rounded bg-white/[0.03] flex justify-between"><span>${r.nombres} ${r.apellidos} - ${r.email} - ${r.estado}</span><span class="text-white/40">${r.id.slice(0,8)}</span></div>`; });
-}
+
 document.getElementById('eventForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  const id=document.getElementById('eventId').value;
-  const payload={nombre: document.getElementById('evNombre').value, descripcion: document.getElementById('evDesc').value, fecha: document.getElementById('evFecha').value||null, mensaje_bienvenida: document.getElementById('evMensaje').value, welcome_delay_seconds: parseInt(document.getElementById('evDelay').value)||0, welcome_duration_seconds: parseInt(document.getElementById('evDuracion').value)||9, activo: document.getElementById('evActivo').checked};
-  if(payload.activo){ await supabase.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000'); }
-  if(id){ await supabase.from('events').update(payload).eq('id',id); } else { await supabase.from('events').insert(payload); }
-  e.target.reset(); document.getElementById('eventId').value=''; loadEvents();
+  const payload={
+    nombre: document.getElementById('evNombre').value,
+    mensaje_bienvenida: document.getElementById('evMensaje').value,
+    welcome_delay_seconds: parseInt(document.getElementById('evDelay').value)||0,
+    welcome_duration_seconds: parseInt(document.getElementById('evDuracion').value)||9,
+    activo: document.getElementById('evActivo').checked
+  };
+  if(payload.activo){ await supabaseClient.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000'); }
+  const {error} = await supabaseClient.from('events').insert(payload);
+  if(error){ alert(error.message); } else { alert('Evento creado'); loadEvents(); e.target.reset(); }
 });
-document.getElementById('catForm').addEventListener('submit', async e=>{ e.preventDefault(); await supabase.from('categories').insert({event_id:selectedEventId, key:document.getElementById('catKey').value, label:document.getElementById('catLabel').value}); e.target.reset(); loadCategories(); loadVoteControls(); });
-document.getElementById('projForm').addEventListener('submit', async e=>{ e.preventDefault(); await supabase.from('projects').insert({event_id:selectedEventId, category_id:document.getElementById('projCat').value, title:document.getElementById('projTitle').value, team:document.getElementById('projTeam').value, photo_url:document.getElementById('projPhoto').value}); e.target.reset(); loadProjects(); });
-window.toggleVote=async(id, open)=>{ await supabase.from('categories').update({votacion_abierta:open}).eq('id',id); loadVoteControls(); };
-window.deleteCat=async(id)=>{ if(confirm('Borrar categoria?')){ await supabase.from('categories').delete().eq('id',id); loadCategories(); } };
-window.selectEvent=selectEvent; window.editEvent=editEvent;
-checkSession();
+
+window.addEventListener('load', ()=>{
+  supabaseClient = initClient();
+  if(supabaseClient) checkSession();
+});
 </script>
 </body>
 </html>

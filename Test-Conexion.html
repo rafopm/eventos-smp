@@ -3,19 +3,26 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Test Conexión Supabase</title>
+<title>Test Conexión v2 - Llaves nuevas</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+<!-- CDN UMD correcto para llaves sb_publishable_ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 </head>
 <body class="min-h-screen bg-[#0f172a] text-white p-6">
 <main class="max-w-2xl mx-auto">
-<h1 class="text-2xl font-black">Test Conexión Supabase</h1>
+<h1 class="text-2xl font-black">Test Conexión v2 - Nuevo formato</h1>
+<p class="text-white/50 text-sm mt-1">Soporta sb_publishable_...</p>
 <div id="logs" class="mt-6 grid gap-3 text-sm font-mono"></div>
 
 <div class="mt-8 bg-white/[0.05] border border-white/10 rounded-2xl p-6">
+<h2 class="font-bold">Config actual</h2>
+<pre id="configShow" class="mt-2 text-xs bg-black/50 p-3 rounded-xl overflow-auto"></pre>
+<button id="btnReload" class="mt-3 w-full bg-white/10 py-2 rounded-xl text-sm">Recargar config.js?v=xxx (bypass cache)</button>
+</div>
+
+<div class="mt-4 bg-white/[0.05] border border-white/10 rounded-2xl p-6">
 <h2 class="font-bold">Probar Login</h2>
-<input id="email" placeholder="eventos@colegiosanmartin.edu.pe" class="mt-3 w-full rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<input id="email" value="eventos@colegiosanmartin.edu.pe" class="mt-3 w-full rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
 <input id="pass" type="password" placeholder="password" class="mt-2 w-full rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
 <button id="btnLogin" class="mt-3 w-full bg-lime-300 text-black font-bold py-3 rounded-xl">Probar Login</button>
 <div id="loginResult" class="mt-3 text-sm"></div>
@@ -27,39 +34,61 @@ function log(msg, type='info'){
   div.className='p-3 rounded-xl border '+(type==='ok'?'bg-emerald-500/10 border-emerald-500/20 text-emerald-200':type==='error'?'bg-red-500/10 border-red-500/20 text-red-200':'bg-white/[0.05] border-white/10 text-white/70');
   div.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
   document.getElementById('logs').appendChild(div);
-  console.log(msg);
+}
+
+let supabaseClient = null;
+
+async function loadConfig(){
+  const url = `config.js?v=${Date.now()}`;
+  log(`Cargando ${url}...`);
+  try{
+    const res = await fetch(url);
+    const text = await res.text();
+    document.getElementById('configShow').textContent = text.slice(0,800);
+    if(!res.ok){ log(`config.js HTTP ${res.status} - revisa que existe en GitHub`, 'error'); return; }
+    if(text.includes('API_BASE')){ log('config.js todavía tiene API_BASE viejo', 'error'); return; }
+    if(!text.includes('SUPABASE_URL')){ log('config.js no tiene SUPABASE_URL', 'error'); return; }
+    // Ejecutar el JS manualmente para definir variables
+    const script = document.createElement('script');
+    script.textContent = text;
+    document.head.appendChild(script);
+    log('config.js ejecutado manualmente', 'ok');
+  }catch(e){ log(`Error fetch config.js: ${e.message}`, 'error'); }
 }
 
 async function test(){
-  log('1. Verificando que config.js cargó...');
-  if(typeof SUPABASE_URL==='undefined'){ log('ERROR: SUPABASE_URL no definido - config.js no cargó o tiene API_BASE viejo de Apps Script', 'error'); return; }
-  if(SUPABASE_URL.includes('script.google.com')){ log('ERROR: config.js todavía tiene la URL de Apps Script, no la de Supabase', 'error'); return; }
-  if(SUPABASE_URL.includes('TU-PROYECTO')){ log('ERROR: config.js tiene placeholder TU-PROYECTO, pega tu URL real de Supabase', 'error'); return; }
-  log(`URL: ${SUPABASE_URL}`, 'ok');
+  await loadConfig();
   
-  log('2. Verificando cliente supabase...');
-  if(typeof supabase==='undefined'){ log('ERROR: supabase no definido - revisa orden de scripts: primero supabase-js CDN, luego config.js', 'error'); return; }
-  log('Cliente supabase OK', 'ok');
-
-  log('3. Probando SELECT publico a events...');
-  const {data, error} = await supabase.from('events').select('*').limit(1);
-  if(error){ log(`ERROR SELECT events: ${error.message} | ${JSON.stringify(error)}`, 'error'); }
-  else{ log(`SELECT OK - encontró ${data.length} eventos`, 'ok'); }
-
-  log('4. Verificando Auth...');
-  const {data: {session}} = await supabase.auth.getSession();
-  if(session){ log(`Sesión activa: ${session.user.email}`, 'ok'); }
-  else{ log('Sin sesión - necesitas loguearte', 'info'); }
+  log(`SUPABASE_URL = ${window.SUPABASE_URL || 'NO DEFINIDO'}`, window.SUPABASE_URL ? 'ok' : 'error');
+  log(`ANON_KEY = ${window.SUPABASE_ANON_KEY ? window.SUPABASE_ANON_KEY.slice(0,20)+'...' : 'NO DEFINIDO'}`, window.SUPABASE_ANON_KEY ? 'ok' : 'error');
+  
+  if(!window.SUPABASE_URL){ log('Falta SUPABASE_URL - revisa config.js', 'error'); return; }
+  
+  if(!window.supabase || !window.supabase.createClient){
+    log('Librería supabase no cargó desde CDN UMD', 'error');
+    return;
+  }
+  log('Librería supabase UMD cargada', 'ok');
+  
+  supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  window.supabaseClient = supabaseClient;
+  log('Cliente creado con sb_publishable_...', 'ok');
+  
+  const {data, error} = await supabaseClient.from('events').select('*').limit(1);
+  if(error){ log(`SELECT events ERROR: ${error.message}`, 'error'); }
+  else{ log(`SELECT events OK: ${data.length} filas`, 'ok'); }
 }
 
+document.getElementById('btnReload').addEventListener('click', ()=>location.reload(true));
 document.getElementById('btnLogin').addEventListener('click', async()=>{
   const email=document.getElementById('email').value.trim();
   const pass=document.getElementById('pass').value;
   const resDiv=document.getElementById('loginResult');
-  resDiv.textContent='Intentando login...';
-  const {data, error} = await supabase.auth.signInWithPassword({email, password: pass});
-  if(error){ resDiv.textContent=`ERROR LOGIN: ${error.message}`; log(`Login falló: ${error.message}`, 'error'); }
-  else{ resDiv.textContent=`Login OK: ${data.user.email} - session: ${data.session.access_token.slice(0,20)}...`; log(`Login OK como ${data.user.email}`, 'ok'); }
+  if(!supabaseClient){ resDiv.textContent='Cliente no creado aún'; return; }
+  resDiv.textContent='Logueando...';
+  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password: pass});
+  if(error){ resDiv.textContent=`ERROR: ${error.message}`; log(`Login error: ${error.message}`, 'error'); }
+  else{ resDiv.textContent=`OK: ${data.user.email}`; log(`Login OK: ${data.user.email}`, 'ok'); }
 });
 
 window.addEventListener('load', test);
