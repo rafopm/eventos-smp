@@ -6,91 +6,249 @@
 <title>Reserva entrada - Feria San Martín</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c5', yellow:'#ffe846', amber:'#ffba08', brownDeep:'#482000', pink:'#fe1954', cyan:'#04bdcf' } } } }
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        cream: '#fffeea',
+        cream2: '#fff9c5',
+        yellow: '#ffe846',
+        amber: '#ffba08',
+        brownDeep: '#482000',
+        pink: '#fe1954',
+        cyan: '#04bdcf',
+      }
+    }
+  }
+}
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=11"></script>
-<link rel="stylesheet" href="styles.css?v=11">
+<script src="config.js?v=13"></script>
+<link rel="stylesheet" href="styles.css?v=13">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
 </head>
-<body class="min-h-screen bg-cream text-brownDeep p-4 md:p-8 flex items-center justify-center">
-<div class="w-full max-w-5xl grid lg:grid-cols-2 gap-6 items-start">
-  <div class="card p-8 md:p-10">
-    <div id="eventInfo">Cargando evento...</div>
+<body class="min-h-screen bg-cream text-brownDeep flex flex-col p-4 md:p-8">
+<main class="w-full max-w-[480px] mx-auto flex-1 flex flex-col justify-center">
+  <!-- Brand minimal -->
+  <div class="text-center mb-8">
+    <p class="text-[11px] font-black tracking-[0.2em] opacity-30">FERIA • SAN MARTÍN</p>
   </div>
-  <div class="card p-8">
+  <!-- Selector de evento cuando hay varios activos -->
+  <div id="eventSelector" class="hidden card p-5 mb-4">
+    <p class="text-xs font-black tracking-widest opacity-40 mb-3">ELIGE EVENTO</p>
+    <div id="eventList" class="grid gap-2"></div>
+  </div>
+  <!-- Info evento seleccionado - minimalista -->
+  <div id="eventInfo" class="card p-7 md:p-8 mb-4">
+    <p class="text-sm opacity-40">Cargando eventos...</p>
+  </div>
+  <!-- Form reserva -->
+  <div class="card p-7 md:p-8">
     <div id="stepEmail">
-      <h2 class="font-display font-black text-3xl">Reserva tu entrada</h2>
-      <p class="text-sm opacity-60 mt-2">Ingresa tu correo para verificar si ya tienes QR</p>
-      <input id="emailCheck" type="email" placeholder="tu@correo.com" class="input mt-6">
-      <button id="btnVerificar" class="btn-primary w-full mt-4 py-4">Continuar</button>
-      <div id="emailStatus" class="hidden mt-4 p-4 rounded-[12px] text-sm"></div>
+      <h2 class="font-display font-black text-2xl leading-tight">Reserva tu entrada</h2>
+      <p class="text-[13px] opacity-50 mt-2">Ingresa tu correo para verificar si ya tienes QR para este evento</p>
+      <div class="mt-5">
+        <input id="emailCheck" type="email" placeholder="tu@correo.com" class="input">
+        <button id="btnVerificar" class="btn-primary w-full mt-3 py-3.5">Continuar</button>
+      </div>
+      <div id="emailStatus" class="hidden mt-4 p-3 rounded-[12px] text-[13px]"></div>
     </div>
     <div id="stepForm" class="hidden">
-      <h2 class="font-display font-black text-2xl">Completa tus datos</h2>
-      <p class="text-sm opacity-60 mt-1">Correo: <span id="verifiedEmail" class="font-bold text-brownDeep"></span></p>
-      <form id="registrationForm" class="mt-6 grid gap-3">
-        <div class="grid grid-cols-2 gap-3"><input id="nombres" required placeholder="Nombres" class="input"><input id="apellidos" required placeholder="Apellidos" class="input"></div>
-        <input id="nombreEstudiante" required placeholder="Nombre estudiante" class="input">
-        <input id="dni" required pattern="[0-9]{8}" maxlength="8" placeholder="DNI adulto 8 dígitos" class="input">
-        <div class="grid grid-cols-2 gap-3"><input id="gradoSeccion" required placeholder="Grado y sección" class="input"><input id="parentesco" required placeholder="Parentesco" class="input"></div>
-        <button id="btnEnviar" type="submit" class="btn-primary w-full py-4 mt-2">Reservar mi entrada</button>
-        <div id="formStatus" class="hidden p-4 rounded-[12px] text-sm"></div>
+      <h2 class="font-display font-black text-xl">Completa tus datos</h2>
+      <p class="text-[12px] opacity-50 mt-1">Correo: <span id="verifiedEmail" class="font-bold text-brownDeep"></span></p>
+      <p id="formEventName" class="text-[11px] font-bold opacity-40 mt-2"></p>
+      <form id="registrationForm" class="mt-5 grid gap-3">
+        <div class="grid grid-cols-2 gap-3">
+          <input id="nombres" required placeholder="Nombres" class="input">
+          <input id="apellidos" required placeholder="Apellidos" class="input">
+        </div>
+        <input id="nombreEstudiante" required placeholder="Nombre del estudiante" class="input">
+        <input id="dni" required pattern="[0-9]{8}" maxlength="8" placeholder="DNI adulto (8 dígitos)" class="input">
+        <div class="grid grid-cols-2 gap-3">
+          <input id="gradoSeccion" required placeholder="Grado y sección" class="input">
+          <input id="parentesco" required placeholder="Parentesco" class="input">
+        </div>
+        <button id="btnEnviar" type="submit" class="btn-primary w-full py-3.5 mt-1">Reservar mi entrada</button>
+        <div id="formStatus" class="hidden p-3 rounded-[12px] text-[13px]"></div>
       </form>
+      <button id="btnBackEmail" class="mt-4 text-[11px] opacity-40 hover:opacity-70">← Cambiar correo / evento</button>
     </div>
     <div id="stepExists" class="hidden text-center">
-      <h2 class="font-display font-black text-2xl">¡Ya tienes entrada!</h2>
-      <div id="qrExists" class="mt-6 flex justify-center bg-white p-4 rounded-[20px] border"></div>
-      <p id="existsId" class="mt-4 font-mono badge badge-cream"></p>
-      <button id="btnReenviar" class="btn-amber w-full mt-6 py-4">Reenviar QR a mi correo</button>
+      <div class="w-12 h-12 bg-amber rounded-full flex items-center justify-center mx-auto text-lg">✓</div>
+      <h2 class="font-display font-black text-2xl mt-4">¡Ya tienes entrada!</h2>
+      <p id="existsEventName" class="text-xs opacity-50 mt-1"></p>
+      <div id="qrExists" class="mt-5 flex justify-center bg-white p-4 rounded-[20px] border border-brownDeep/5"></div>
+      <p id="existsId" class="mt-3 font-mono text-[11px] badge badge-cream"></p>
+      <button id="btnReenviar" class="btn-amber w-full mt-5 py-3 text-sm">Reenviar QR a mi correo</button>
+      <button id="btnChangeEventExists" class="mt-3 text-[11px] opacity-40">← Reservar para otro evento</button>
     </div>
   </div>
-</div>
+  <!-- Enlace pequeño a registro de proyectos / grupos -->
+  <div class="text-center mt-6">
+    <a href="registro-grupos.html" class="text-[11px] opacity-40 hover:opacity-80 underline underline-offset-4">¿Eres grupo / proyecto? Registra tu presentación aquí →</a>
+  </div>
+</main>
 <div id="qrHidden" class="hidden"></div>
 <script>
-let activeEvent=null, currentEmail="";
-async function loadActiveEvent(){
-  const client = window.initSupabaseClient ? window.initSupabaseClient() : supabase;
-  const {data, error} = await client.from('events').select('*').eq('activo',true).limit(1).single();
-  if(error || !data){ document.getElementById('eventInfo').innerHTML='<div class="text-center py-12"><p class="text-3xl">😴</p><p class="font-bold mt-4">No hay inscripciones abiertas</p></div>'; return; }
-  activeEvent=data;
-  const img = data.imagen_url || data.image_url || '';
-  document.getElementById('eventInfo').innerHTML=`
+let supabaseClient=null, activeEvent=null, activeEvents=[], currentEmail="";
+function initClient(){
+  supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  return supabaseClient;
+}
+function renderEventInfo(ev){
+  const img = ev.imagen_url || ev.image_url || '';
+  document.getElementById('eventInfo').innerHTML = `
     <div class="flex gap-4 items-start">
-      <div class="event-square w-16 h-16 shrink-0">${img? `<img src="${img}">` : data.nombre[0]}</div>
-      <div>
-        <div class="badge badge-amber mb-2">● Inscripciones abiertas</div>
-        <h1 class="font-display font-black text-4xl leading-[0.9]">${data.nombre}</h1>
-        <p class="opacity-60 mt-3 text-sm">${data.descripcion||''}</p>
+      ${img ? `<div class="w-14 h-14 rounded-[14px] overflow-hidden bg-cream2 border border-brownDeep/5 shrink-0"><img src="${img}" class="w-full h-full object-cover"></div>` : ''}
+      <div class="flex-1 min-w-0">
+        <h1 class="font-display font-black text-[1.7rem] leading-[0.9] tracking-tight">${ev.nombre}</h1>
+        ${ev.descripcion ? `<p class="opacity-60 mt-2 text-[13px] leading-snug">${ev.descripcion}</p>` : ''}
+        ${ev.fecha ? `<p class="mt-3 badge badge-cream text-[10px]">${new Date(ev.fecha).toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long'})}</p>` : ''}
       </div>
     </div>
-    <div class="mt-6 card-cream p-5 rounded-[16px]"><p class="text-sm font-medium">${data.mensaje_bienvenida||''}</p></div>
-    <div class="mt-4 flex gap-2"><span class="badge badge-cream">${data.fecha||''}</span><span class="badge badge-brown">QR único</span></div>
+    ${ev.mensaje_bienvenida ? `<div class="mt-5 card-cream p-4 rounded-[14px]"><p class="text-[13px] leading-snug font-medium">${ev.mensaje_bienvenida}</p></div>` : ''}
   `;
 }
-function showStatus(el, t, type){ el.classList.remove('hidden'); el.className='mt-4 p-4 rounded-[12px] text-sm '+(type==='success'?'bg-green-50 border border-green-200 text-green-800':type==='error'?'bg-pink/10 border border-pink/20 text-pink':'bg-cream2 border border-brownDeep/10'); el.textContent=t; }
+function renderEventSelector(events){
+  const selector = document.getElementById('eventSelector');
+  const list = document.getElementById('eventList');
+  if(events.length <= 1){
+    selector.classList.add('hidden');
+    return;
+  }
+  selector.classList.remove('hidden');
+  list.innerHTML = '';
+  events.forEach(ev=>{
+    const btn = document.createElement('button');
+    btn.className = `w-full text-left p-3 rounded-[14px] border transition ${activeEvent && activeEvent.id===ev.id ? 'border-brownDeep bg-brownDeep text-cream' : 'border-brownDeep/10 bg-white hover:border-brownDeep/20'}`;
+    btn.innerHTML = `<p class="font-bold text-[14px] leading-tight">${ev.nombre}</p>${ev.fecha ? `<p class="text-[11px] opacity-60 mt-1">${new Date(ev.fecha).toLocaleDateString()}</p>` : ''}`;
+    btn.onclick = ()=>{
+      activeEvent = ev;
+      renderEventInfo(ev);
+      renderEventSelector(events);
+      document.getElementById('formEventName').textContent = ev.nombre;
+      // reset steps
+      document.getElementById('stepExists').classList.add('hidden');
+      document.getElementById('stepForm').classList.add('hidden');
+      document.getElementById('stepEmail').classList.remove('hidden');
+      document.getElementById('emailStatus').classList.add('hidden');
+    };
+    list.appendChild(btn);
+  });
+}
+async function loadActiveEvents(){
+  try{
+    const {data, error} = await supabaseClient.from('events').select('*').eq('activo', true).order('fecha',{ascending:false});
+    if(error) throw error;
+    activeEvents = data || [];
+    if(activeEvents.length===0){
+      document.getElementById('eventInfo').innerHTML = '<p class="text-sm opacity-40 text-center py-6">No hay inscripciones abiertas por ahora.</p>';
+      document.getElementById('eventSelector').classList.add('hidden');
+      return;
+    }
+    // Si hay 1, seleccionarlo directo
+    if(activeEvents.length===1){
+      activeEvent = activeEvents[0];
+      renderEventInfo(activeEvent);
+      renderEventSelector(activeEvents);
+      document.getElementById('formEventName').textContent = activeEvent.nombre;
+    } else {
+      // Varios: mostrar selector y seleccionar primero por defecto
+      activeEvent = activeEvents[0];
+      renderEventInfo(activeEvent);
+      renderEventSelector(activeEvents);
+      document.getElementById('formEventName').textContent = activeEvent.nombre;
+    }
+  }catch(err){
+    console.error(err);
+    document.getElementById('eventInfo').innerHTML = `<p class="text-sm text-pink">Error cargando eventos: ${err.message}</p>`;
+  }
+}
+function showStatus(el, t, type){
+  el.classList.remove('hidden');
+  el.className='mt-4 p-3 rounded-[12px] text-[13px] '+(type==='success'?'bg-green-50 border border-green-200 text-green-800':type==='error'?'bg-pink/10 border border-pink/20 text-pink':'bg-cream2 border border-brownDeep/10');
+  el.textContent=t;
+}
 async function checkEmail(){
-  const email=document.getElementById('emailCheck').value.trim().toLowerCase(); const status=document.getElementById('emailStatus');
+  const email=document.getElementById('emailCheck').value.trim().toLowerCase();
+  const status=document.getElementById('emailStatus');
   if(!email.includes('@')){ showStatus(status,'Correo inválido','error'); return; }
-  const client = window.initSupabaseClient ? window.initSupabaseClient() : supabase;
-  const {data} = await client.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', email).single();
-  if(data){ currentEmail=email; document.getElementById('stepEmail').classList.add('hidden'); document.getElementById('stepExists').classList.remove('hidden'); document.getElementById('existsId').textContent='ID: '+data.id; document.getElementById('qrExists').innerHTML=''; new QRCode(document.getElementById('qrExists'), {text: data.id, width:200, height:200}); }
-  else{ currentEmail=email; document.getElementById('verifiedEmail').textContent=email; document.getElementById('stepEmail').classList.add('hidden'); document.getElementById('stepForm').classList.remove('hidden'); }
+  if(!activeEvent){ showStatus(status,'Selecciona un evento primero','error'); return; }
+  const {data} = await supabaseClient.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', email).maybeSingle();
+  if(data){
+    currentEmail=email;
+    document.getElementById('stepEmail').classList.add('hidden');
+    document.getElementById('stepExists').classList.remove('hidden');
+    document.getElementById('existsId').textContent='ID: '+data.id;
+    document.getElementById('existsEventName').textContent=activeEvent.nombre;
+    document.getElementById('qrExists').innerHTML='';
+    new QRCode(document.getElementById('qrExists'), {text: data.id, width:180, height:180});
+  }else{
+    currentEmail=email;
+    document.getElementById('verifiedEmail').textContent=email;
+    document.getElementById('formEventName').textContent=activeEvent.nombre;
+    document.getElementById('stepEmail').classList.add('hidden');
+    document.getElementById('stepForm').classList.remove('hidden');
+  }
 }
 async function register(e){
-  e.preventDefault(); const status=document.getElementById('formStatus');
-  const payload={event_id: activeEvent.id, nombres: document.getElementById('nombres').value.trim(), apellidos: document.getElementById('apellidos').value.trim(), nombre_estudiante: document.getElementById('nombreEstudiante').value.trim(), dni: document.getElementById('dni').value.trim(), grado_seccion: document.getElementById('gradoSeccion').value.trim(), parentesco: document.getElementById('parentesco').value.trim(), email: currentEmail};
-  showStatus(status,'Reservando...',''); const client = window.initSupabaseClient ? window.initSupabaseClient() : supabase;
-  const {data, error} = await client.from('registrations').insert(payload).select().single();
-  if(error){ if(error.code==='23505') showStatus(status,'Ya tienes entrada con ese correo','error'); else showStatus(status,error.message,'error'); return; }
-  showStatus(status,`¡Reserva lista! ID: ${data.id} - Te enviamos QR a ${data.email}`,'success');
-  document.getElementById('qrHidden').innerHTML=''; new QRCode(document.getElementById('qrHidden'), {text: data.id, width:300, height:300});
-  setTimeout(async ()=>{ const qrCanvas=document.querySelector('#qrHidden canvas'); const qrDataUrl=qrCanvas? qrCanvas.toDataURL():''; try{ const driveUrl=window.APPS_SCRIPT_URL; if(driveUrl) await fetch(driveUrl,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({to: data.email, id: data.id, nombre: data.nombres+' '+data.apellidos, evento: activeEvent.nombre})}); }catch(err){} }, 500);
+  e.preventDefault();
+  const status=document.getElementById('formStatus');
+  if(!activeEvent){ showStatus(status,'Selecciona evento','error'); return; }
+  const payload={
+    event_id: activeEvent.id,
+    nombres: document.getElementById('nombres').value.trim(),
+    apellidos: document.getElementById('apellidos').value.trim(),
+    nombre_estudiante: document.getElementById('nombreEstudiante').value.trim(),
+    dni: document.getElementById('dni').value.trim(),
+    grado_seccion: document.getElementById('gradoSeccion').value.trim(),
+    parentesco: document.getElementById('parentesco').value.trim(),
+    email: currentEmail,
+  };
+  showStatus(status,'Reservando...','');
+  const {data, error} = await supabaseClient.from('registrations').insert(payload).select().single();
+  if(error){
+    if(error.code==='23505') showStatus(status,'Ya tienes entrada con ese correo para este evento','error');
+    else showStatus(status,error.message,'error');
+    return;
+  }
+  showStatus(status,`¡Reserva lista! Te enviamos QR a ${data.email}`,'success');
+  document.getElementById('qrHidden').innerHTML='';
+  new QRCode(document.getElementById('qrHidden'), {text: data.id, width:300, height:300});
+  setTimeout(async ()=>{
+    try{
+      const driveUrl=window.APPS_SCRIPT_URL;
+      if(driveUrl){
+        await fetch(driveUrl,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({to: data.email, id: data.id, nombre: data.nombres+' '+data.apellidos, evento: activeEvent.nombre})});
+      }
+    }catch(err){ console.log('Email no enviado', err); }
+  }, 500);
 }
 document.getElementById('btnVerificar').addEventListener('click', checkEmail);
+document.getElementById('emailCheck').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); checkEmail(); } });
 document.getElementById('registrationForm').addEventListener('submit', register);
-document.getElementById('btnReenviar')?.addEventListener('click', async()=>{ const client=window.initSupabaseClient ? window.initSupabaseClient() : supabase; const {data}=await client.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', currentEmail).single(); if(data){ await fetch(window.APPS_SCRIPT_URL,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({to: data.email, id: data.id, nombre: data.nombres+' '+data.apellidos, evento: activeEvent.nombre})}); alert('QR reenviado'); } });
-window.addEventListener('load', loadActiveEvent);
+document.getElementById('btnBackEmail').addEventListener('click', ()=>{
+  document.getElementById('stepForm').classList.add('hidden');
+  document.getElementById('stepEmail').classList.remove('hidden');
+});
+document.getElementById('btnChangeEventExists').addEventListener('click', ()=>{
+  document.getElementById('stepExists').classList.add('hidden');
+  document.getElementById('stepEmail').classList.remove('hidden');
+});
+document.getElementById('btnReenviar')?.addEventListener('click', async()=>{
+  const {data}=await supabaseClient.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', currentEmail).maybeSingle();
+  if(data){
+    try{
+      await fetch(window.APPS_SCRIPT_URL,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({to: data.email, id: data.id, nombre: data.nombres+' '+data.apellidos, evento: activeEvent.nombre})});
+      alert('QR reenviado a '+data.email);
+    }catch(e){ alert('Error reenviando: '+e.message); }
+  }
+});
+window.addEventListener('load', async()=>{
+  initClient();
+  await loadActiveEvents();
+});
 </script>
 </body>
 </html>
