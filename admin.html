@@ -3,111 +3,81 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin Panel - Seguro v2</title>
+<title>Admin v3 Final</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=2"></script>
+<script>
+// Fallback hardcodeado por si config.js falla por cache
+window.SUPABASE_URL = window.SUPABASE_URL || "https://pgnlafozaukhdqlxfcfk.supabase.co";
+window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "sb_publishable_pVJiDol9813vN_wCbuRT0w_w1vDatSz";
+</script>
+<script src="config-simple.js?v=3"></script>
 </head>
 <body class="min-h-screen bg-[#10130c] text-white p-6">
-<main class="max-w-6xl mx-auto">
-<h1 class="text-3xl font-extrabold">Panel Admin - Seguro v2</h1>
-<div id="status" class="mt-2 text-xs text-white/50">Cargando...</div>
+<main class="max-w-3xl mx-auto">
+<h1 class="text-2xl font-black">Admin v3 Final - Seguro</h1>
+<div id="status" class="mt-2 text-xs"></div>
 
-<section id="loginSection" class="mt-8 max-w-md bg-white/[0.05] border border-white/10 rounded-2xl p-6">
-<h2 class="font-bold">Iniciar sesión admin</h2>
-<form id="loginForm" class="mt-4 grid gap-3">
-<input id="loginEmail" type="email" required value="eventos@colegiosanmartin.edu.pe" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
-<input id="loginPass" type="password" required placeholder="Contraseña" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
-<button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Entrar</button>
-<p id="loginMsg" class="hidden text-sm p-3 rounded-xl"></p>
-</form>
+<section id="loginSection" class="mt-6 bg-white/[0.05] border border-white/10 rounded-2xl p-6">
+<input id="loginEmail" type="email" value="eventos@colegiosanmartin.edu.pe" class="w-full rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<input id="loginPass" type="password" placeholder="Contraseña" class="mt-2 w-full rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
+<button id="btnLogin" class="mt-3 w-full bg-lime-300 text-black font-bold py-3 rounded-xl">Entrar</button>
+<p id="loginMsg" class="mt-2 text-sm"></p>
 </section>
 
 <div id="adminContent" class="hidden">
-<div class="mt-4 flex justify-between items-center">
-<p id="userInfo" class="text-sm text-lime-300"></p>
-<button id="logoutBtn" class="text-xs bg-white/10 px-3 py-1.5 rounded-lg">Cerrar sesión</button>
-</div>
+<p id="userInfo" class="mt-4 text-sm text-lime-300"></p>
 <div id="eventList" class="mt-6 grid gap-2"></div>
-<div class="mt-6">
-<h2 class="font-bold">Crear Evento</h2>
-<form id="eventForm" class="mt-3 grid gap-3 max-w-lg">
+<form id="eventForm" class="mt-6 grid gap-3 max-w-lg bg-white/[0.03] p-4 rounded-xl">
 <input id="evNombre" required placeholder="Nombre evento" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3">
-<textarea id="evMensaje" placeholder="Mensaje bienvenida" class="rounded-xl bg-white/[0.06] border border-white/10 px-4 py-3"></textarea>
-<div class="grid grid-cols-2 gap-3">
-<input id="evDelay" type="number" value="0" placeholder="Delay seg" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
-<input id="evDuracion" type="number" value="9" placeholder="Duración seg" class="rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2">
-</div>
-<label class="flex gap-2 text-sm"><input id="evActivo" type="checkbox"> Activo</label>
-<button class="bg-lime-300 text-black font-extrabold py-3 rounded-xl">Guardar</button>
+<button class="bg-lime-300 text-black font-bold py-2 rounded-xl">Crear evento de prueba</button>
 </form>
-</div>
+<button id="logoutBtn" class="mt-6 text-xs bg-white/10 px-3 py-1.5 rounded-lg">Cerrar sesión</button>
 </div>
 </main>
 <script>
 let supabaseClient;
-function initClient(){
-  if(!window.SUPABASE_URL){ document.getElementById('status').textContent='ERROR: config.js no cargó - haz Ctrl+Shift+R'; return null; }
-  const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  window.supabaseClient = client;
-  document.getElementById('status').textContent=`Conectado a ${window.SUPABASE_URL}`;
-  return client;
+function init(){
+  const url = window.SUPABASE_URL;
+  const key = window.SUPABASE_ANON_KEY;
+  document.getElementById('status').textContent = `URL: ${url} | KEY: ${key.slice(0,20)}...`;
+  if(!window.supabase?.createClient){ document.getElementById('status').textContent='ERROR CDN supabase no cargó'; return null; }
+  supabaseClient = window.supabase.createClient(url, key);
+  window.supabaseClient = supabaseClient;
+  return supabaseClient;
 }
-
 async function checkSession(){
   const {data: {session}} = await supabaseClient.auth.getSession();
   if(session){
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('adminContent').classList.remove('hidden');
-    document.getElementById('userInfo').textContent=`Logueado: ${session.user.email}`;
+    document.getElementById('userInfo').textContent = `Logueado: ${session.user.email}`;
     loadEvents();
-  } else {
-    document.getElementById('loginSection').classList.remove('hidden');
-    document.getElementById('adminContent').classList.add('hidden');
   }
 }
-
-document.getElementById('loginForm').addEventListener('submit', async e=>{
+async function loadEvents(){
+  const {data, error} = await supabaseClient.from('events').select('*').limit(10);
+  const list=document.getElementById('eventList'); list.innerHTML='';
+  if(error){ list.innerHTML=`Error: ${error.message}`; return; }
+  data.forEach(ev=>{ list.innerHTML+=`<div class="p-2 bg-white/5 rounded">${ev.nombre}</div>`; });
+}
+document.getElementById('btnLogin').addEventListener('click', async(e)=>{
   e.preventDefault();
   const email=document.getElementById('loginEmail').value.trim();
   const pass=document.getElementById('loginPass').value;
-  const msg=document.getElementById('loginMsg');
   const {data, error} = await supabaseClient.auth.signInWithPassword({email, password: pass});
-  if(error){ msg.classList.remove('hidden'); msg.textContent=error.message; msg.className='text-sm p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200'; return; }
-  checkSession();
+  const msg=document.getElementById('loginMsg');
+  if(error){ msg.textContent=error.message; msg.className='text-red-300'; }
+  else{ checkSession(); }
 });
-
-document.getElementById('logoutBtn').addEventListener('click', async()=>{ await supabaseClient.auth.signOut(); location.reload(); });
-
-async function loadEvents(){
-  const {data, error} = await supabaseClient.from('events').select('*').order('created_at',{ascending:false});
-  const list=document.getElementById('eventList'); list.innerHTML='';
-  if(error){ list.innerHTML=`<p class="text-red-300">Error: ${error.message}</p>`; return; }
-  data.forEach(ev=>{
-    const div=document.createElement('div'); div.className='p-3 rounded-xl bg-white/[0.04] border border-white/10';
-    div.textContent=`${ev.nombre} ${ev.activo?'● ACTIVO':''} - delay ${ev.welcome_delay_seconds}s`;
-    list.appendChild(div);
-  });
-}
-
 document.getElementById('eventForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  const payload={
-    nombre: document.getElementById('evNombre').value,
-    mensaje_bienvenida: document.getElementById('evMensaje').value,
-    welcome_delay_seconds: parseInt(document.getElementById('evDelay').value)||0,
-    welcome_duration_seconds: parseInt(document.getElementById('evDuracion').value)||9,
-    activo: document.getElementById('evActivo').checked
-  };
-  if(payload.activo){ await supabaseClient.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000'); }
-  const {error} = await supabaseClient.from('events').insert(payload);
-  if(error){ alert(error.message); } else { alert('Evento creado'); loadEvents(); e.target.reset(); }
+  const nombre=document.getElementById('evNombre').value;
+  const {error} = await supabaseClient.from('events').insert({nombre, activo:true, welcome_delay_seconds:0, welcome_duration_seconds:9});
+  if(error) alert(error.message); else { alert('Creado!'); loadEvents(); }
 });
-
-window.addEventListener('load', ()=>{
-  supabaseClient = initClient();
-  if(supabaseClient) checkSession();
-});
+document.getElementById('logoutBtn').addEventListener('click', async()=>{ await supabaseClient.auth.signOut(); location.reload(); });
+window.addEventListener('load', ()=>{ supabaseClient=init(); if(supabaseClient) checkSession(); });
 </script>
 </body>
 </html>
