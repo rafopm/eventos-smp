@@ -9,8 +9,8 @@
 tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c5', yellow:'#ffe846', amber:'#ffba08', brownDeep:'#482000', pink:'#fe1954' } } } }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=13"></script>
-<link rel="stylesheet" href="styles.css?v=13">
+<script src="config.js?v=14"></script>
+<link rel="stylesheet" href="styles.css?v=14">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
 </head>
 <body class="min-h-screen bg-cream text-brownDeep">
@@ -18,7 +18,7 @@ tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c
   <div class="max-w-[1400px] mx-auto px-6 py-3 flex justify-between items-center">
     <div class="flex items-center gap-3">
       <div class="w-8 h-8 rounded-[10px] bg-brownDeep text-cream flex items-center justify-center font-black text-[12px]">A</div>
-      <div><h1 class="font-display font-black text-[15px] leading-none">Admin Feria</h1><p class="text-[10px] opacity-40 font-bold tracking-widest">SAN MARTÍN • MINIMAL</p></div>
+      <div><h1 class="font-display font-black text-[15px] leading-none">Admin Feria</h1><p class="text-[10px] opacity-40 font-bold tracking-widest">SAN MARTÍN • EDITABLE</p></div>
     </div>
     <div class="flex gap-1.5">
       <a href="display.html" target="_blank" class="btn-ghost text-[11px] py-1.5 px-3">📺 Display</a>
@@ -28,14 +28,13 @@ tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c
   </div>
 </header>
 <main class="max-w-[1400px] mx-auto p-4 md:p-6 space-y-6">
-<!-- EVENTS -->
 <section class="grid lg:grid-cols-5 gap-5">
   <div class="lg:col-span-2 card p-5">
     <p class="text-[11px] font-black tracking-widest opacity-30">EVENTO</p>
-    <h2 class="font-display font-black text-xl mt-1">Crear / Editar</h2>
+    <h2 id="formTitle" class="font-display font-black text-xl mt-1">Crear evento</h2>
     <form id="eventForm" class="mt-4 grid gap-3">
       <input type="hidden" id="eventId">
-      <input id="evNombre" required placeholder="Nombre evento" class="input font-bold">
+      <input id="evNombre" required placeholder="Nombre evento - grande en display" class="input font-bold">
       <textarea id="evDesc" placeholder="Descripción corta" class="input" rows="2"></textarea>
       <div class="grid grid-cols-2 gap-2">
         <input id="evFecha" type="date" class="input">
@@ -47,24 +46,26 @@ tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c
         <p id="evImageStatus" class="text-[11px] mt-2 hidden"></p>
         <div id="evImagePreview" class="hidden mt-2"><img id="evPreviewImg" class="w-16 h-16 rounded-[12px] object-cover border"></div>
       </div>
-      <textarea id="evMensaje" placeholder="Mensaje bienvenida - usa [NOMBRE]" class="input" rows="2"></textarea>
+      <textarea id="evMensaje" placeholder="Mensaje bienvenida display - usa [NOMBRE] para el ingresante" class="input" rows="2"></textarea>
       <div class="grid grid-cols-2 gap-2">
-        <label class="text-[11px] font-bold">Delay<input id="evDelay" type="number" value="0" class="input mt-1"></label>
-        <label class="text-[11px] font-bold">Duración<input id="evDuracion" type="number" value="8" class="input mt-1"></label>
+        <label class="text-[11px] font-bold">Delay (seg)<input id="evDelay" type="number" value="0" class="input mt-1"></label>
+        <label class="text-[11px] font-bold">Duración (seg)<input id="evDuracion" type="number" value="8" class="input mt-1"></label>
       </div>
       <div class="flex gap-3">
         <label class="flex items-center gap-2 text-[11px] font-bold"><input id="evActivo" type="checkbox"> Activo</label>
         <label class="flex items-center gap-2 text-[11px] font-bold"><input id="evBienvenidaActiva" type="checkbox" checked> Bienvenida ON</label>
       </div>
-      <button class="btn-primary w-full py-3">Guardar evento</button>
+      <button id="btnSaveEvent" class="btn-primary w-full py-3">Guardar evento</button>
+      <button id="btnCancelEdit" type="button" class="hidden btn-ghost w-full py-2 text-[11px]">Cancelar edición</button>
     </form>
   </div>
   <div class="lg:col-span-3 card p-5">
     <div class="flex justify-between items-center">
-      <p class="text-[11px] font-black tracking-widest opacity-30">EVENTOS ACTIVOS</p>
-      <button id="btnReloadEvents" class="btn-ghost text-[11px] py-1 px-2">🔄</button>
+      <p class="text-[11px] font-black tracking-widest opacity-30">EVENTOS • EDITAR / ELIMINAR</p>
+      <button id="btnReloadEvents" class="btn-ghost text-[11px] py-1 px-2">🔄 Recargar</button>
     </div>
-    <div id="eventList" class="mt-4 grid gap-2"></div>
+    <div id="eventList" class="mt-4 grid gap-3"></div>
+    <p class="text-[11px] opacity-30 mt-4">Tip: Editar carga datos arriba • Eliminar borra todo lo asociado (votos, proyectos, registros)</p>
   </div>
 </section>
 <section id="detailSection" class="hidden space-y-5">
@@ -113,7 +114,6 @@ tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c
   </div>
 </section>
 </main>
-<!-- Modal edit -->
 <div id="editModal" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="card p-6 w-full max-w-[480px]">
     <h3 class="font-black">Editar grupo</h3>
@@ -128,19 +128,37 @@ tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c
   </div>
 </div>
 <script>
-let supabaseClient=null, selectedEventId=null, uploadedEventImageUrl=null, filterMode='pending', allGroups=[];
+let supabaseClient=null, selectedEventId=null, uploadedEventImageUrl=null, filterMode='pending', allGroups=[], allEventsCache=[];
 function initClient(){
   supabaseClient = window.initSupabaseClient ? window.initSupabaseClient() : window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   return supabaseClient;
 }
 async function loadEvents(){
   const {data} = await supabaseClient.from('events').select('*').order('fecha',{ascending:false});
+  allEventsCache=data||[];
   const list=document.getElementById('eventList'); list.innerHTML='';
   (data||[]).forEach(ev=>{
     const div=document.createElement('div');
-    div.className=`flex gap-3 p-3 rounded-[12px] border cursor-pointer transition ${ev.activo ? 'border-amber bg-amber/10 border-l-4 border-l-amber' : 'border-brownDeep/5 bg-white'}`;
-    div.innerHTML=`<div class="w-10 h-10 rounded-[10px] bg-cream2 overflow-hidden shrink-0">${ev.imagen_url||ev.image_url?`<img src="${ev.imagen_url||ev.image_url}" class="w-full h-full object-cover">`:`<div class="w-full h-full flex items-center justify-center font-black text-[11px]">${ev.nombre.slice(0,2).toUpperCase()}</div>`}</div><div class="flex-1 min-w-0"><p class="font-bold text-[13px] truncate">${ev.nombre}</p><p class="text-[11px] opacity-50 truncate">${ev.descripcion||''}</p></div><span class="badge ${ev.activo?'badge-amber':'badge-cream'} text-[10px]">${ev.activo?'ACTIVO':''}</span>`;
-    div.onclick=()=>selectEvent(ev.id);
+    div.className=`group flex gap-3 p-4 rounded-[14px] border transition ${ev.activo ? 'border-amber bg-amber/10 border-l-4 border-l-amber' : 'border-brownDeep/5 bg-white hover:border-brownDeep/10'}`;
+    div.innerHTML=`
+      <div class="w-12 h-12 rounded-[12px] bg-cream2 overflow-hidden shrink-0 cursor-pointer flex items-center justify-center" onclick="selectEvent('${ev.id}')">
+        ${ev.imagen_url||ev.image_url?`<img src="${ev.imagen_url||ev.image_url}" class="w-full h-full object-cover">`:`<span class="font-black text-[12px]">${ev.nombre.slice(0,2).toUpperCase()}</span>`}
+      </div>
+      <div class="flex-1 min-w-0 cursor-pointer" onclick="selectEvent('${ev.id}')">
+        <p class="font-bold text-[14px] leading-tight">${ev.nombre}</p>
+        <p class="text-[11px] opacity-50 truncate mt-1">${ev.descripcion||''}</p>
+        <div class="mt-2 flex gap-1.5 flex-wrap">
+          ${ev.activo?'<span class="badge badge-amber text-[9px]">ACTIVO</span>':'<span class="badge badge-cream text-[9px]">INACTIVO</span>'}
+          <span class="badge badge-cream text-[9px]">${ev.fecha? new Date(ev.fecha).toLocaleDateString() : 'sin fecha'}</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1">
+        <button onclick="event.stopPropagation(); selectEvent('${ev.id}')" class="btn-ghost text-[10px] py-1 px-2" title="Configurar">⚙️ Config</button>
+        <button onclick="event.stopPropagation(); editEvent('${ev.id}')" class="btn-ghost text-[10px] py-1 px-2" title="Editar">✏️ Editar</button>
+        <button onclick="event.stopPropagation(); toggleActive('${ev.id}', ${ev.activo})" class="btn-ghost text-[10px] py-1 px-2">${ev.activo?'💤 Desactivar':'✅ Activar'}</button>
+        <button onclick="event.stopPropagation(); deleteEvent('${ev.id}')" class="btn-ghost text-[10px] py-1 px-2 text-pink border-pink/20" title="Eliminar">🗑️ Eliminar</button>
+      </div>
+    `;
     list.appendChild(div);
   });
 }
@@ -156,25 +174,73 @@ async function selectEvent(id){
   square.innerHTML= img ? `<img src="${img}" class="w-full h-full object-cover">` : ev.nombre.slice(0,2).toUpperCase();
   loadCategories(); loadVoteControls(); loadProjectsAndGroups(); loadResultsByCategory();
 }
-function editEvent(id){
-  // cargar datos al form principal
-  supabaseClient.from('events').select('*').eq('id', id).single().then(({data})=>{
-    document.getElementById('eventId').value=data.id;
-    document.getElementById('evNombre').value=data.nombre;
-    document.getElementById('evDesc').value=data.descripcion||'';
-    document.getElementById('evFecha').value=data.fecha||'';
-    document.getElementById('evImagen').value=data.imagen_url||data.image_url||'';
-    document.getElementById('evMensaje').value=data.mensaje_bienvenida||'';
-    document.getElementById('evDelay').value=data.welcome_delay_seconds||0;
-    document.getElementById('evDuracion').value=data.welcome_duration_seconds||8;
-    document.getElementById('evActivo').checked=data.activo;
-    window.scrollTo({top:0, behavior:'smooth'});
-  });
+async function editEvent(id){
+  const {data, error} = await supabaseClient.from('events').select('*').eq('id', id).single();
+  if(error || !data){ alert('No se pudo cargar evento'); return; }
+  document.getElementById('eventId').value=data.id;
+  document.getElementById('evNombre').value=data.nombre;
+  document.getElementById('evDesc').value=data.descripcion||'';
+  document.getElementById('evFecha').value=data.fecha||'';
+  document.getElementById('evImagen').value=data.imagen_url||data.image_url||'';
+  document.getElementById('evMensaje').value=data.mensaje_bienvenida||'';
+  document.getElementById('evDelay').value=data.welcome_delay_seconds||0;
+  document.getElementById('evDuracion').value=data.welcome_duration_seconds||8;
+  document.getElementById('evActivo').checked=data.activo;
+  document.getElementById('evBienvenidaActiva').checked=data.bienvenida_activa!==false;
+  document.getElementById('formTitle').textContent='✏️ Editar evento';
+  document.getElementById('btnSaveEvent').textContent='✏️ Actualizar evento';
+  document.getElementById('btnCancelEdit').classList.remove('hidden');
+  if(data.imagen_url||data.image_url){
+    document.getElementById('evImagePreview').classList.remove('hidden');
+    document.getElementById('evPreviewImg').src=data.imagen_url||data.image_url;
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 async function toggleActive(id, current){
-  await supabaseClient.from('events').update({activo:!current}).eq('id', id);
-  if(!current){ await supabaseClient.from('events').update({activo:false}).neq('id', id); }
+  if(current){
+    await supabaseClient.from('events').update({activo:false}).eq('id', id);
+  } else {
+    await supabaseClient.from('events').update({activo:false}).neq('id','00000000-0000-0000-0000-000000000000');
+    await supabaseClient.from('events').update({activo:true}).eq('id', id);
+  }
   loadEvents();
+}
+async function deleteEvent(id){
+  const ev = allEventsCache.find(e=>e.id===id);
+  const name = ev?.nombre || id.slice(0,8);
+  if(!confirm(`¿Eliminar evento "${name}"?\n\nSe borrarán categorías, proyectos, votos y registros asociados. No se puede deshacer.`)) return;
+  if(!confirm(`CONFIRMACIÓN FINAL: ¿Borrar "${name}" PERMANENTEMENTE?`)) return;
+  try{
+    // Orden para FK
+    await supabaseClient.from('votes').delete().eq('event_id', id);
+    await supabaseClient.from('projects').delete().eq('event_id', id);
+    await supabaseClient.from('categories').delete().eq('event_id', id);
+    await supabaseClient.from('registrations').delete().eq('event_id', id);
+    const {error} = await supabaseClient.from('events').delete().eq('id', id);
+    if(error) throw error;
+    alert('Evento eliminado correctamente');
+    if(selectedEventId===id){ document.getElementById('detailSection').classList.add('hidden'); selectedEventId=null; }
+    // Reset form if editing this event
+    if(document.getElementById('eventId').value===id){
+      document.getElementById('eventForm').reset();
+      document.getElementById('eventId').value='';
+      document.getElementById('formTitle').textContent='Crear evento';
+      document.getElementById('btnSaveEvent').textContent='Guardar evento';
+      document.getElementById('btnCancelEdit').classList.add('hidden');
+    }
+    loadEvents();
+  }catch(err){
+    alert('Error al eliminar: '+err.message);
+  }
+}
+function resetForm(){
+  document.getElementById('eventForm').reset();
+  document.getElementById('eventId').value='';
+  document.getElementById('formTitle').textContent='Crear evento';
+  document.getElementById('btnSaveEvent').textContent='Guardar evento';
+  document.getElementById('btnCancelEdit').classList.add('hidden');
+  document.getElementById('evImagePreview').classList.add('hidden');
+  uploadedEventImageUrl=null;
 }
 async function loadCategories(){
   const {data} = await supabaseClient.from('categories').select('*').eq('event_id', selectedEventId).order('orden');
@@ -213,7 +279,6 @@ function renderGroups(){
         <p class="text-[11px] opacity-40 mt-1 truncate">${g.tipo_presentacion||''} ${g.grado_seccion||''}</p>
         <div class="mt-2 flex gap-1.5 flex-wrap">
           <span class="badge ${g.activo?'badge-green':'badge-amber'} text-[9px]">${g.activo?'APROBADO':'PENDIENTE'}</span>
-          ${g.estado_registro?`<span class="badge badge-cream text-[9px]">${g.estado_registro}</span>`:''}
         </div>
         <div class="mt-2 flex gap-1.5">
           ${!g.activo?`<button onclick="approveGroup('${g.id}')" class="btn-amber text-[10px] py-1 px-2">Aprobar</button>`:''}
@@ -267,8 +332,9 @@ document.getElementById('eventForm').addEventListener('submit', async e=>{
   if(id){ res = await supabaseClient.from('events').update(payloadFull).eq('id',id).select().single(); if(res.error) res = await supabaseClient.from('events').update(payloadMinimal).eq('id',id).select().single(); }
   else { res = await supabaseClient.from('events').insert(payloadFull).select().single(); if(res.error) res = await supabaseClient.from('events').insert(payloadMinimal).select().single(); }
   if(res.error){ alert('Error: '+res.error.message); return; }
-  document.getElementById('eventForm').reset(); document.getElementById('eventId').value=''; document.getElementById('evImagePreview').classList.add('hidden'); uploadedEventImageUrl=null; loadEvents();
+  resetForm(); loadEvents();
 });
+document.getElementById('btnCancelEdit').addEventListener('click', resetForm);
 document.getElementById('evImageFile').addEventListener('change', async e=>{
   const file=e.target.files[0]; if(!file) return;
   const status=document.getElementById('evImageStatus'), preview=document.getElementById('evImagePreview'), img=document.getElementById('evPreviewImg');
@@ -299,7 +365,7 @@ document.getElementById('editForm').addEventListener('submit', async e=>{
 window.toggleVote=async(id, open)=>{ await supabaseClient.from('categories').update({votacion_abierta:open}).eq('id',id); loadVoteControls(); };
 window.deleteCat=async(id)=>{ if(confirm('Borrar categoria?')){ await supabaseClient.from('categories').delete().eq('id',id); loadCategories(); } };
 window.deleteProject=async(id)=>{ if(confirm('Borrar?')){ await supabaseClient.from('projects').delete().eq('id',id); loadProjectsAndGroups(); } };
-window.selectEvent=selectEvent; window.editEvent=editEvent; window.toggleActive=toggleActive; window.openEditModal=openEditModal;
+window.selectEvent=selectEvent; window.editEvent=editEvent; window.toggleActive=toggleActive; window.deleteEvent=deleteEvent; window.openEditModal=openEditModal;
 document.getElementById('btnCloseModal').addEventListener('click', closeEditModal);
 document.getElementById('editModal').addEventListener('click', (e)=>{ if(e.target.id==='editModal') closeEditModal(); });
 document.getElementById('btnRefreshGroups').addEventListener('click', loadProjectsAndGroups);
