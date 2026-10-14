@@ -100,6 +100,13 @@ function renderResults(){
     const projsInCat = projects.filter(p=>p.category_id===cat.id);
     const results = projsInCat.map(p=>({...p, votes: votesByProject[p.id]||0})).sort((a,b)=>b.votes-a.votes);
     const totalInCat = results.reduce((s,p)=>s+p.votes,0);
+    const rankGroups=[];
+    for(let start=0;start<results.length;){
+      let end=start+1;
+      while(end<results.length && results[end].votes===results[start].votes) end++;
+      rankGroups.push({place:start+1, tied:end-start>1, projects:results.slice(start,end)});
+      start=end;
+    }
     
     const section=document.createElement('section');
     section.className='card p-6 md:p-8';
@@ -120,57 +127,37 @@ function renderResults(){
       html+=`<p class="mt-8 text-center text-[13px] opacity-30 py-8">No hay proyectos en esta categoría</p>`;
       section.innerHTML=html; container.appendChild(section); return;
     }
-    // Podio minimalista impactante
-    html+=`<div class="mt-8 grid md:grid-cols-3 gap-4 items-end">`;
-    // 2do
-    if(results[1]){
-      const p=results[1]; const pct=totalInCat?Math.round(p.votes/totalInCat*100):0;
-      html+=`
-        <div class="order-2 md:order-1 bg-cream2 border border-brownDeep/5 rounded-[20px] p-5 text-center">
-          <p class="font-display font-black text-[3rem] leading-none opacity-10">02</p>
-          <p class="text-[10px] font-black tracking-widest opacity-40 -mt-2">SEGUNDO</p>
-          <h3 class="font-bold text-[15px] mt-3 leading-tight">${p.title}</h3>
-          <p class="text-[11px] opacity-50 truncate">${p.team||''}</p>
-          ${p.photo_url?`<img src="${p.photo_url}" class="mt-3 w-full h-[100px] object-cover rounded-[12px]">`:''}
-          <div class="mt-3 h-1.5 bg-brownDeep/10 rounded-full overflow-hidden"><div class="h-full bg-brownDeep/40" style="width:${pct}%"></div></div>
-          <p class="mt-2 font-mono text-[12px] font-bold">${p.votes} • ${pct}%</p>
-        </div>`;
+    if(totalInCat===0){
+      html+=`<p class="mt-8 text-center text-[13px] opacity-50 py-5">Aún no hay votos en esta categoría.</p><div class="grid md:grid-cols-2 gap-3">`;
+      results.forEach(p=>{ html+=`<div class="p-4 rounded-[14px] bg-cream2/60"><p class="font-bold">${p.title}</p><p class="text-xs opacity-60">${p.team||''}</p><p class="mt-2 text-xs font-mono">0 votos</p></div>`; });
+      html+='</div>';
+      section.innerHTML=html; container.appendChild(section); return;
     }
-    // 1ero - destacado
-    const p1=results[0]; const pct1=totalInCat?Math.round(p1.votes/totalInCat*100):0;
-    html+=`
-      <div class="order-1 md:order-2 bg-brownDeep text-cream rounded-[24px] p-6 text-center relative overflow-hidden shadow-medium">
-        <div class="absolute top-0 right-0 w-32 h-32 bg-amber/20 rounded-full blur-[30px] -translate-y-10 translate-x-10"></div>
-        <p class="font-display font-black text-[4rem] leading-none text-amber/30">01</p>
-        <p class="text-[10px] font-black tracking-[0.2em] text-amber -mt-2">CAMPEÓN</p>
-        <h3 class="font-display font-black text-[1.5rem] leading-tight mt-3">${p1.title}</h3>
-        <p class="text-[12px] text-cream/60 truncate">${p1.team||''}</p>
-        ${p1.photo_url?`<img src="${p1.photo_url}" class="mt-4 w-full h-[160px] object-cover rounded-[16px] border border-white/10">`:''}
-        <div class="mt-4 h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-amber" style="width:${pct1}%"></div></div>
-        <p class="mt-3 font-mono text-sm font-black text-amber">${p1.votes} votos • ${pct1}%</p>
-      </div>`;
-    // 3ero
-    if(results[2]){
-      const p=results[2]; const pct=totalInCat?Math.round(p.votes/totalInCat*100):0;
-      html+=`
-        <div class="order-3 bg-white border border-brownDeep/5 rounded-[20px] p-5 text-center">
-          <p class="font-display font-black text-[3rem] leading-none opacity-10">03</p>
-          <p class="text-[10px] font-black tracking-widest opacity-40 -mt-2">TERCERO</p>
-          <h3 class="font-bold text-[14px] mt-3 leading-tight">${p.title}</h3>
-          <p class="text-[11px] opacity-50 truncate">${p.team||''}</p>
-          ${p.photo_url?`<img src="${p.photo_url}" class="mt-3 w-full h-[90px] object-cover rounded-[12px]">`:''}
-          <div class="mt-3 h-1.5 bg-brownDeep/10 rounded-full overflow-hidden"><div class="h-full bg-brownDeep/20" style="width:${pct}%"></div></div>
-          <p class="mt-2 font-mono text-[11px]">${p.votes} • ${pct}%</p>
-        </div>`;
+
+    const placeNames={1:'PRIMER LUGAR',2:'SEGUNDO LUGAR',3:'TERCER LUGAR'};
+    const renderRankedProject=(p,group)=>{
+      const pct=Math.round(p.votes/totalInCat*100);
+      const isWinner=group.place===1 && !group.tied;
+      const isTopThree=group.place<=3;
+      const label=group.tied?`EMPATE EN ${placeNames[group.place]||`PUESTO ${group.place}`}`:(placeNames[group.place]||`PUESTO ${group.place}`);
+      return isWinner
+        ? `<article class="bg-brownDeep text-cream rounded-[20px] p-5 text-center shadow-medium"><p class="text-sm font-black text-amber">${label}</p><h3 class="font-bold text-xl leading-tight mt-3">${p.title}</h3><p class="text-xs text-cream/70 mt-1">${p.team||''}</p>${p.photo_url?`<img src="${p.photo_url}" alt="Foto de ${p.title}" class="mt-4 w-full h-[160px] object-cover rounded-[12px]">`:''}<p class="mt-4 font-mono font-black text-amber">${p.votes} votos · ${pct}%</p><div class="mt-3 h-2 bg-white/15 rounded-full overflow-hidden"><div class="h-full bg-amber" style="width:${pct}%"></div></div></article>`
+        : isTopThree
+          ? `<article class="${group.place===1?'bg-amber/20 border-2 border-amber':'bg-cream2 border border-brownDeep/5'} rounded-[18px] p-5 text-center"><p class="text-xs font-black tracking-wide">${label}</p><h3 class="font-bold text-lg leading-tight mt-3">${p.title}</h3><p class="text-xs opacity-60 mt-1">${p.team||''}</p>${p.photo_url?`<img src="${p.photo_url}" alt="Foto de ${p.title}" class="mt-3 w-full h-[120px] object-cover rounded-[12px]">`:''}<p class="mt-3 font-mono text-sm font-bold">${p.votes} votos · ${pct}%</p><div class="mt-2 h-1.5 bg-brownDeep/10 rounded-full overflow-hidden"><div class="h-full bg-brownDeep/50" style="width:${pct}%"></div></div></article>`
+          : `<div class="flex items-center gap-3 p-3 rounded-[12px] bg-cream2/60"><div class="font-black text-[11px] opacity-60 min-w-24">${label}</div><div class="flex-1 min-w-0"><p class="font-bold text-[13px] truncate">${p.title}</p><p class="text-[11px] opacity-60 truncate">${p.team||''}</p></div><div class="text-[11px] font-mono font-bold">${p.votes} votos · ${pct}%</div></div>`;
+    };
+
+    const podiumGroups=rankGroups.filter(group=>group.place<=3);
+    if(podiumGroups.length){
+      html+=`<div class="mt-8 grid md:grid-cols-3 gap-4 items-stretch">`;
+      podiumGroups.forEach(group=>group.projects.forEach(p=>{ html+=renderRankedProject(p,group); }));
+      html+='</div>';
     }
-    html+=`</div>`;
-    if(results.length>3){
-      html+=`<div class="mt-8 border-t border-brownDeep/5 pt-6"><p class="text-[11px] font-black tracking-widest opacity-30 mb-3">OTROS PUESTOS</p><div class="grid gap-2">`;
-      results.slice(3).forEach((p, idx)=>{
-        const place=idx+4; const pct=totalInCat?Math.round(p.votes/totalInCat*100):0;
-        html+=`<div class="flex items-center gap-3 p-3 rounded-[12px] bg-cream2/60"><div class="font-display font-black text-[13px] opacity-30 w-8">${String(place).padStart(2,'0')}</div><div class="flex-1 min-w-0"><p class="font-bold text-[13px] truncate">${p.title}</p><p class="text-[11px] opacity-40 truncate">${p.team||''}</p></div><div class="text-[11px] font-mono font-bold">${p.votes}</div><div class="w-16 h-1 bg-brownDeep/10 rounded-full overflow-hidden"><div class="h-full bg-brownDeep/30" style="width:${pct}%"></div></div></div>`;
-      });
-      html+=`</div></div>`;
+    const otherGroups=rankGroups.filter(group=>group.place>3);
+    if(otherGroups.length){
+      html+=`<div class="mt-8 border-t border-brownDeep/5 pt-6"><p class="text-xs font-black tracking-wide mb-3">DEMÁS PUESTOS</p><div class="grid gap-2">`;
+      otherGroups.forEach(group=>group.projects.forEach(p=>{ html+=renderRankedProject(p,group); }));
+      html+='</div></div>';
     }
     section.innerHTML=html;
     container.appendChild(section);

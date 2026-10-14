@@ -42,6 +42,16 @@ tailwind.config = {
   line-height: 1.1;
   overflow-wrap: anywhere;
 }
+.event-title-enter{
+  animation: event-title-reveal 1100ms cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes event-title-reveal{
+  from{opacity:0;transform:translateY(28px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@media (prefers-reduced-motion: reduce){
+  .event-title-enter{animation:none}
+}
 </style>
 </head>
 <body class="min-h-screen bg-cream text-brownDeep flex flex-col overflow-hidden">
@@ -56,7 +66,7 @@ tailwind.config = {
         <!-- Texto evento - izquierda - GIGANTE -->
         <div class="flex-1 space-y-8 lg:space-y-10 text-center lg:text-left">
           <div class="space-y-5">
-            <!-- Título evento - GIGANTE legible a 20 metros, bonito con Fraunces 900 -->
+            <!-- El nombre del evento vuelve a protagonizar la pantalla después de cada ingreso. -->
             <h1 id="eventTitle" class="far-title text-[clamp(3.2rem,9vw,8rem)] text-brownDeep">
               Esperando evento...
             </h1>
@@ -64,12 +74,6 @@ tailwind.config = {
             <div id="eventMeta" class="flex justify-center lg:justify-start gap-2 flex-wrap pt-2">
               <span id="eventDate" class="hidden badge badge-cream text-[12px] font-bold"></span>
             </div>
-          </div>
-          <!-- Mensaje bienvenida del evento - ESTE PERMANECE siempre, gigante y legible -->
-          <div class="pt-8 border-t-2 border-brownDeep/10">
-            <p class="text-[12px] font-black tracking-[0.25em] opacity-70 mb-4">BIENVENIDOS A</p>
-            <p id="waitingMessage" class="far-welcome text-[clamp(2.6rem,6vw,5rem)] tracking-tight text-brownDeep">¡Bienvenidos a la Feria!</p>
-            <p class="text-[clamp(1rem,1.6vw,1.25rem)] opacity-50 mt-6 max-w-2xl mx-auto lg:mx-0 font-medium">La bienvenida a cada familia aparecerá aquí en grande cuando escaneen su QR</p>
           </div>
         </div>
         <!-- Imagen cuadrada - DERECHA solo desktop, desaparece móvil y si no hay imagen -->
@@ -82,7 +86,7 @@ tailwind.config = {
       </div>
     </div>
     <!-- WELCOME INGRESANTE - GIGANTE para leer de lejos, bonito -->
-    <div id="welcomeCard" class="hidden w-full">
+    <div id="welcomeCard" class="hidden w-full" aria-live="polite">
       <div class="card p-8 md:p-14 lg:p-20 overflow-hidden relative border-2 border-brownDeep/10 shadow-medium">
         <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-amber/15 rounded-full blur-[90px] -translate-y-48 translate-x-48 pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-yellow/10 rounded-full blur-[100px] translate-y-48 -translate-x-48 pointer-events-none"></div>
@@ -114,7 +118,7 @@ tailwind.config = {
   <div class="flex items-center gap-4">
     <div class="flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
-      <span id="liveLabel" class="font-black tracking-widest opacity-80">EN VIVO • LEGIBLE DE LEJOS</span>
+      <span id="liveLabel" class="font-black tracking-widest opacity-80">EN VIVO</span>
       <span id="queueBadge" class="hidden badge badge-brown text-[10px]"></span>
       <span id="pausedBadge" class="hidden badge badge-cream text-[10px]">Bienvenida ingresantes pausada</span>
     </div>
@@ -143,20 +147,19 @@ let welcomeEnabled = localStorage.getItem('welcome_enabled') !== 'false';
 let activeEvent=null;
 let fontScale = parseFloat(localStorage.getItem('display_font_scale')||'1');
 const waitingState=document.getElementById('waitingState'), welcomeCard=document.getElementById('welcomeCard');
-const eventTitle=document.getElementById('eventTitle'), eventDesc=document.getElementById('eventDesc'), eventDate=document.getElementById('eventDate'), waitingMessage=document.getElementById('waitingMessage');
+const eventTitle=document.getElementById('eventTitle'), eventDesc=document.getElementById('eventDesc'), eventDate=document.getElementById('eventDate');
 const eventImage=document.getElementById('eventImage'), eventIconContainer=document.getElementById('eventIconContainer');
 const welcomeTitle=document.getElementById('welcomeTitle'), welcomeSubtitle=document.getElementById('welcomeSubtitle'), welcomeMsg=document.getElementById('welcomeMsg'), welcomeId=document.getElementById('welcomeId'), welcomeTime=document.getElementById('welcomeTime');
 const welcomeToggle=document.getElementById('welcomeToggle'), queueBadge=document.getElementById('queueBadge'), pausedBadge=document.getElementById('pausedBadge');
 function applyFontScale(){
   document.documentElement.style.setProperty('--font-scale', fontScale);
-  // Escalar solo los textos gigantes
-  eventTitle.style.transform = `scale(${fontScale})`;
-  eventTitle.style.transformOrigin = 'left center';
-  if(window.innerWidth < 1024) eventTitle.style.transformOrigin = 'center center';
-  waitingMessage.style.transform = `scale(${fontScale})`;
-  waitingMessage.style.transformOrigin = 'left center';
-  if(window.innerWidth < 1024) waitingMessage.style.transformOrigin = 'center center';
+  eventTitle.style.fontSize = `clamp(${3.2 * fontScale}rem, ${9 * fontScale}vw, ${8 * fontScale}rem)`;
   localStorage.setItem('display_font_scale', fontScale);
+}
+function animateEventTitle(){
+  eventTitle.classList.remove('event-title-enter');
+  void eventTitle.offsetWidth;
+  eventTitle.classList.add('event-title-enter');
 }
 function updateToggleUI(){
   if(welcomeEnabled){ welcomeToggle.classList.add('active'); pausedBadge.classList.add('hidden'); }
@@ -174,6 +177,7 @@ async function loadActiveEvent(){
     if(error || !data){ eventTitle.textContent='No hay evento activo'; return null; }
     
     eventTitle.textContent=data.nombre;
+    animateEventTitle();
     eventDesc.textContent=data.descripcion||'';
     if(data.fecha){ eventDate.textContent=window.formatEventDate(data.fecha,{weekday:'long',day:'numeric',month:'long'}); eventDate.classList.remove('hidden'); }
     
@@ -185,7 +189,6 @@ async function loadActiveEvent(){
       eventIconContainer.className = 'hidden';
     }
     
-    waitingMessage.textContent=data.mensaje_bienvenida || '¡Bienvenidos a la Feria!';
     applyFontScale();
     return data;
   }catch(err){ console.error(err); return null; }
@@ -199,6 +202,7 @@ function showWelcome(reg){
   isShowing=true; 
   waitingState.classList.add('hidden'); 
   welcomeCard.classList.remove('hidden');
+  welcomeCard.setAttribute('aria-live','polite');
   
   welcomeTitle.textContent = `${reg.nombres} ${reg.apellidos}`;
   welcomeSubtitle.textContent = `${reg.parentesco||''} ${reg.nombre_estudiante? 'de ' + reg.nombre_estudiante : ''}`.trim();
@@ -206,16 +210,16 @@ function showWelcome(reg){
   welcomeId.textContent = reg.id.slice(0,8);
   welcomeTime.textContent = new Date().toLocaleTimeString();
   applyFontScale();
-  welcomeTitle.style.transform = `scale(${fontScale})`;
-  welcomeTitle.style.transformOrigin = 'center center';
-  welcomeMsg.style.transform = `scale(${fontScale*0.9})`;
-  welcomeMsg.style.transformOrigin = 'center center';
+  welcomeTitle.style.fontSize = `clamp(${3.5 * fontScale}rem, ${10 * fontScale}vw, ${7.5 * fontScale}rem)`;
+  welcomeMsg.style.fontSize = `clamp(${1.8 * fontScale}rem, ${3.6 * fontScale}vw, ${2.88 * fontScale}rem)`;
   for(let k=0;k<2;k++) setTimeout(()=>{for(let i=0;i<16;i++){const c=document.createElement('div'); c.className='absolute w-3 h-3 rounded-full'; c.style.left=Math.random()*100+'%'; c.style.top='2%'; c.style.background=['#ffba08','#fe1954'][Math.floor(Math.random()*2)]; document.body.appendChild(c); c.animate([{transform:'translateY(0) rotate(0)',opacity:1},{transform:`translateY(${window.innerHeight}px) rotate(720deg)`,opacity:0}],{duration:3000+Math.random()*1000,fill:'forwards'}); setTimeout(()=>c.remove(),4000);}},k*200);
   const duration = (activeEvent?.welcome_duration_seconds || 8) * 1000;
   const delayBeforeNext = activeEvent?.welcome_delay_seconds || 0;
-  let voiceDone=!voiceEnabled, minDone=false;
+  let minDone=false, finished=false;
   function finish(){ 
-    if(voiceDone && minDone){ 
+    if(minDone && !finished){
+      finished=true;
+      if(voiceEnabled) speechSynthesis.cancel();
       welcomeCard.classList.add('hidden'); 
       if(localQueue.length>0 && welcomeEnabled){
         const n=localQueue.shift(); 
@@ -223,6 +227,7 @@ function showWelcome(reg){
         setTimeout(()=>showWelcome(n), delayBeforeNext*1000 || 600);
       } else{ 
         waitingState.classList.remove('hidden'); 
+        animateEventTitle();
         isShowing=false; 
       } 
     } 
@@ -230,8 +235,8 @@ function showWelcome(reg){
   if(voiceEnabled){
     const frase=`¡Bienvenido! ${reg.nombres} ${reg.apellidos}. ${reg.parentesco} de ${reg.nombre_estudiante}. ${activeEvent.mensaje_bienvenida}`;
     const u=new SpeechSynthesisUtterance(frase); u.lang='es-PE'; u.rate=0.9; const v=getVoice(); if(v) u.voice=v;
-    u.onend=()=>{voiceDone=true; setTimeout(finish,800);}; speechSynthesis.speak(u);
-  } else voiceDone=true;
+    u.onend=()=>setTimeout(finish,800); speechSynthesis.speak(u);
+  }
   setTimeout(()=>{minDone=true; finish();}, duration);
 }
 function updateQueueBadge(){
