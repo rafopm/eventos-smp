@@ -24,7 +24,7 @@ tailwind.config = {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=13"></script>
+<script src="config.js?v=15"></script>
 <link rel="stylesheet" href="styles.css?v=13">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
 </head>
@@ -218,9 +218,8 @@ async function register(e){
   new QRCode(document.getElementById('qrHidden'), {text: data.id, width:300, height:300});
   setTimeout(async ()=>{
     try{
-      const driveUrl=window.APPS_SCRIPT_URL;
-      if(driveUrl){
-        await fetch(driveUrl,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({to: data.email, id: data.id, nombre: data.nombres+' '+data.apellidos, evento: activeEvent.nombre})});
+      if(window.APPS_SCRIPT_URL){
+        await window.appsScriptRequest({action:'email', to:data.email, id:data.id, nombre:data.nombres+' '+data.apellidos, evento:activeEvent.nombre});
       }
     }catch(err){ console.log('Email no enviado', err); }
   }, 500);
@@ -240,7 +239,7 @@ document.getElementById('btnReenviar')?.addEventListener('click', async()=>{
   const {data}=await supabaseClient.from('registrations').select('*').eq('event_id', activeEvent.id).eq('email', currentEmail).maybeSingle();
   if(data){
     try{
-      await fetch(window.APPS_SCRIPT_URL,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({to: data.email, id: data.id, nombre: data.nombres+' '+data.apellidos, evento: activeEvent.nombre})});
+      await window.appsScriptRequest({action:'email', to:data.email, id:data.id, nombre:data.nombres+' '+data.apellidos, evento:activeEvent.nombre});
       alert('QR reenviado a '+data.email);
     }catch(e){ alert('Error reenviando: '+e.message); }
   }

@@ -9,7 +9,7 @@
 tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c5', yellow:'#ffe846', amber:'#ffba08', brownDeep:'#482000', pink:'#fe1954' } } } }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=13"></script>
+<script src="config.js?v=15"></script>
 <link rel="stylesheet" href="styles.css?v=13">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
 </head>
@@ -138,12 +138,8 @@ document.getElementById('photoFile').addEventListener('change', async e=>{
   preview.classList.remove('hidden'); previewImg.src=URL.createObjectURL(file); status.textContent='📤 Subiendo a Drive...'; status.className='text-[11px] mt-2 badge badge-cream';
   try{
     const base64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
-    const driveUrl=window.APPS_SCRIPT_DRIVE_URL || window.APPS_SCRIPT_URL;
-    const resp=await fetch(driveUrl,{method:'POST', body: JSON.stringify({fileName:file.name, mimeType:file.type, base64Data:base64, folderId: window.DRIVE_FOLDER_ID||""})});
-    const result=await resp.json();
-    if(result.success || result.ok || result.url){
-      uploadedPhotoUrl=result.url; status.textContent='✅ Subido'; status.className='badge badge-green mt-2'; document.getElementById('photoUrlManual').value=result.url;
-    } else throw new Error(result.error||'Error');
+    const result=await window.appsScriptRequest({action:'upload', fileName:file.name, mimeType:file.type, base64Data:base64, folderId:window.DRIVE_FOLDER_ID||''});
+    uploadedPhotoUrl=result.url; status.textContent='✅ Subido'; status.className='badge badge-green mt-2'; document.getElementById('photoUrlManual').value=result.url;
   }catch(err){ status.textContent='❌ '+err.message; status.className='badge badge-pink mt-2'; }
 });
 document.getElementById('groupForm').addEventListener('submit', async e=>{
