@@ -73,3 +73,13 @@ window.appsScriptRequest = function(payload, timeoutMs){
     catch(error){ cleanup(); reject(error); }
   });
 };
+
+window.formatEventDate = function(value, options){
+  if(!value) return '';
+  var match=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  var date=match
+    ? new Date(Number(match[1]),Number(match[2])-1,Number(match[3]))
+    : new Date(value);
+  if(Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('es-PE',options||{day:'numeric',month:'long',year:'numeric'}).format(date);
+};

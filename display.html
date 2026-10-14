@@ -22,23 +22,25 @@ tailwind.config = {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=14"></script>
-<link rel="stylesheet" href="styles.css?v=14">
+<script src="config.js?v=16"></script>
+<link rel="stylesheet" href="styles.css?v=16">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
 <style>
 /* Tipografía legible de lejos pero bonita */
 .far-title{
-  font-family: 'Fraunces', serif;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  line-height: 0.82;
+  font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0 !important;
+  line-height: 1.05;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 .far-welcome{
-  font-family: 'Fraunces', serif;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 0.95;
+  font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0 !important;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 </style>
 </head>
@@ -65,7 +67,7 @@ tailwind.config = {
           </div>
           <!-- Mensaje bienvenida del evento - ESTE PERMANECE siempre, gigante y legible -->
           <div class="pt-8 border-t-2 border-brownDeep/10">
-            <p class="text-[12px] font-black tracking-[0.25em] opacity-40 mb-4">BIENVENIDOS A</p>
+            <p class="text-[12px] font-black tracking-[0.25em] opacity-70 mb-4">BIENVENIDOS A</p>
             <p id="waitingMessage" class="far-welcome text-[clamp(2.6rem,6vw,5rem)] tracking-tight text-brownDeep">¡Bienvenidos a la Feria!</p>
             <p class="text-[clamp(1rem,1.6vw,1.25rem)] opacity-50 mt-6 max-w-2xl mx-auto lg:mx-0 font-medium">La bienvenida a cada familia aparecerá aquí en grande cuando escaneen su QR</p>
           </div>
@@ -96,7 +98,7 @@ tailwind.config = {
           <div class="bg-cream2 rounded-[28px] p-8 md:p-12 border-2 border-brownDeep/5 max-w-4xl mx-auto">
             <p id="welcomeMsg" class="far-welcome text-[clamp(1.8rem,4vw,3.2rem)]"></p>
           </div>
-          <div class="flex justify-center gap-4 text-[12px] opacity-30 font-mono">
+          <div class="flex justify-center gap-4 text-[12px] opacity-70 font-mono">
             <span id="welcomeId"></span>
             <span>•</span>
             <span id="welcomeTime"></span>
@@ -108,11 +110,11 @@ tailwind.config = {
   </div>
 </div>
 <!-- Bottom bar - configuración pequeña abajo -->
-<div class="w-full bg-white/90 backdrop-blur-xl border-t-2 border-brownDeep/5 px-4 md:px-8 py-3 flex flex-wrap justify-between items-center gap-3 text-[11px] sticky bottom-0 z-20">
+<div class="w-full bg-white/95 backdrop-blur-xl border-t-2 border-brownDeep/10 px-4 md:px-8 py-3 flex flex-wrap justify-between items-center gap-3 text-[12px] sticky bottom-0 z-20">
   <div class="flex items-center gap-4">
     <div class="flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
-      <span id="liveLabel" class="font-black tracking-widest opacity-60">EN VIVO • LEGIBLE DE LEJOS</span>
+      <span id="liveLabel" class="font-black tracking-widest opacity-80">EN VIVO • LEGIBLE DE LEJOS</span>
       <span id="queueBadge" class="hidden badge badge-brown text-[10px]"></span>
       <span id="pausedBadge" class="hidden badge badge-cream text-[10px]">Bienvenida ingresantes pausada</span>
     </div>
@@ -173,7 +175,7 @@ async function loadActiveEvent(){
     
     eventTitle.textContent=data.nombre;
     eventDesc.textContent=data.descripcion||'';
-    if(data.fecha){ eventDate.textContent=new Date(data.fecha).toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long'}); eventDate.classList.remove('hidden'); }
+    if(data.fecha){ eventDate.textContent=window.formatEventDate(data.fecha,{weekday:'long',day:'numeric',month:'long'}); eventDate.classList.remove('hidden'); }
     
     const imgUrl = data.imagen_url || data.image_url || data.logo_url || null;
     if(imgUrl){

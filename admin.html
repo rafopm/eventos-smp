@@ -9,7 +9,7 @@
 tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c5', yellow:'#ffe846', amber:'#ffba08', brownDeep:'#482000', pink:'#fe1954' } } } }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=15"></script>
+<script src="config.js?v=16"></script>
 <link rel="stylesheet" href="styles.css?v=14">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Fraunces:opsz,wght@9..144,900&display=swap" rel="stylesheet">
 </head>
@@ -115,14 +115,33 @@ tailwind.config = { theme: { extend: { colors: { cream:'#fffeea', cream2:'#fff9c
 </section>
 </main>
 <div id="editModal" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="card p-6 w-full max-w-[480px]">
+  <div class="card p-6 w-full max-w-[720px] max-h-[90vh] overflow-y-auto">
     <h3 class="font-black">Editar grupo</h3>
     <form id="editForm" class="mt-4 grid gap-3">
       <input type="hidden" id="editId">
-      <input id="editTitle" class="input" placeholder="Título">
-      <input id="editTeam" class="input" placeholder="Equipo">
-      <textarea id="editDesc" class="input" rows="2" placeholder="Descripción"></textarea>
-      <input id="editPhoto" class="input" placeholder="URL foto">
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="grid gap-1 text-xs font-bold">Nombre presentación<input id="editTitle" required class="input" placeholder="Nombre presentación"></label>
+        <label class="grid gap-1 text-xs font-bold">Grupo / elenco<input id="editGroupName" class="input" placeholder="Grupo / elenco"></label>
+      </div>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="grid gap-1 text-xs font-bold">Categoría<select id="editCategory" required class="input"></select></label>
+        <label class="grid gap-1 text-xs font-bold">Tipo de presentación<select id="editPresentationType" class="input"><option value="">Selecciona tipo...</option><option value="PROYECTO">Proyecto</option><option value="BAILE">Baile</option><option value="TEATRO">Teatro</option><option value="CANTO">Canto</option><option value="MUSICA">Música</option><option value="ARTE">Arte</option><option value="OTRO">Otro</option></select></label>
+      </div>
+      <label class="grid gap-1 text-xs font-bold">Integrantes<textarea id="editTeam" required class="input" rows="2" placeholder="Nombres de integrantes"></textarea></label>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="grid gap-1 text-xs font-bold">Grado / taller<input id="editGrade" class="input" placeholder="Grado / taller"></label>
+        <label class="grid gap-1 text-xs font-bold">Duración estimada<input id="editDuration" class="input" placeholder="Ej. 5 min"></label>
+      </div>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="grid gap-1 text-xs font-bold">Tutor/a<input id="editTutor" class="input" placeholder="Nombre del tutor"></label>
+        <label class="grid gap-1 text-xs font-bold">Email responsable<input id="editContactEmail" type="email" class="input" placeholder="correo@ejemplo.com"></label>
+      </div>
+      <label class="grid gap-1 text-xs font-bold">WhatsApp<input id="editContactPhone" class="input" placeholder="Teléfono de contacto"></label>
+      <label class="grid gap-1 text-xs font-bold">Descripción<textarea id="editDesc" class="input" rows="3" placeholder="Descripción de la presentación"></textarea></label>
+      <label class="grid gap-1 text-xs font-bold">URL de foto<input id="editPhoto" type="url" class="input" placeholder="https://..."></label>
+      <label class="grid gap-1 text-xs font-bold">Reemplazar foto (Google Drive)<input id="editPhotoFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="input"></label>
+      <p id="editPhotoStatus" class="hidden text-xs" role="status" aria-live="polite"></p>
+      <label class="grid gap-1 text-xs font-bold">Estado<select id="editStatus" class="input"><option value="PENDIENTE">Pendiente</option><option value="APROBADO">Aprobado</option></select></label>
       <div class="flex gap-2"><button type="submit" class="btn-primary flex-1">Guardar</button><button type="button" id="btnCloseModal" class="btn-ghost flex-1">Cerrar</button></div>
     </form>
   </div>
@@ -149,7 +168,7 @@ async function loadEvents(){
         <p class="text-[11px] opacity-50 truncate mt-1">${ev.descripcion||''}</p>
         <div class="mt-2 flex gap-1.5 flex-wrap">
           ${ev.activo?'<span class="badge badge-amber text-[9px]">ACTIVO</span>':'<span class="badge badge-cream text-[9px]">INACTIVO</span>'}
-          <span class="badge badge-cream text-[9px]">${ev.fecha? new Date(ev.fecha).toLocaleDateString() : 'sin fecha'}</span>
+          <span class="badge badge-cream text-[9px]">${ev.fecha? window.formatEventDate(ev.fecha) : 'sin fecha'}</span>
         </div>
       </div>
       <div class="flex flex-col gap-1">
@@ -168,7 +187,7 @@ async function selectEvent(id){
   const {data: ev} = await supabaseClient.from('events').select('*').eq('id', id).single();
   document.getElementById('selectedEventName').textContent=ev.nombre;
   document.getElementById('selectedEventDesc').textContent=ev.descripcion||'';
-  document.getElementById('selectedEventDate').textContent=ev.fecha? new Date(ev.fecha).toLocaleDateString():'';
+  document.getElementById('selectedEventDate').textContent=window.formatEventDate(ev.fecha);
   const square=document.getElementById('selectedEventSquare');
   const img=ev.imagen_url||ev.image_url;
   square.innerHTML= img ? `<img src="${img}" class="w-full h-full object-cover">` : ev.nombre.slice(0,2).toUpperCase();
@@ -316,9 +335,22 @@ function openEditModal(id){
   const g=allGroups.find(x=>x.id===id); if(!g) return;
   document.getElementById('editId').value=g.id;
   document.getElementById('editTitle').value=g.title;
+  document.getElementById('editGroupName').value=g.nombre_grupo||'';
   document.getElementById('editTeam').value=g.team||'';
   document.getElementById('editDesc').value=g.description||'';
   document.getElementById('editPhoto').value=g.photo_url||'';
+  document.getElementById('editGrade').value=g.grado_seccion||'';
+  document.getElementById('editDuration').value=g.duracion_estimada||'';
+  document.getElementById('editTutor').value=g.tutor_name||'';
+  document.getElementById('editContactEmail').value=g.contact_email||'';
+  document.getElementById('editContactPhone').value=g.contact_phone||'';
+  document.getElementById('editPresentationType').value=g.tipo_presentacion||'';
+  document.getElementById('editStatus').value=g.estado_registro||(g.activo?'APROBADO':'PENDIENTE');
+  document.getElementById('editPhotoFile').value='';
+  document.getElementById('editPhotoStatus').classList.add('hidden');
+  const categorySelect=document.getElementById('editCategory');
+  categorySelect.innerHTML=document.getElementById('projCat').innerHTML;
+  categorySelect.value=g.category_id;
   document.getElementById('editModal').classList.remove('hidden');
 }
 function closeEditModal(){ document.getElementById('editModal').classList.add('hidden'); }
@@ -358,8 +390,44 @@ document.getElementById('projForm').addEventListener('submit', async e=>{
 document.getElementById('editForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const id=document.getElementById('editId').value;
-  await supabaseClient.from('projects').update({title:document.getElementById('editTitle').value, team:document.getElementById('editTeam').value, description:document.getElementById('editDesc').value, photo_url:document.getElementById('editPhoto').value||null}).eq('id', id);
-  closeEditModal(); loadProjectsAndGroups();
+  const status=document.getElementById('editStatus').value;
+  const payload={
+    title:document.getElementById('editTitle').value.trim(),
+    nombre_grupo:document.getElementById('editGroupName').value.trim()||null,
+    category_id:document.getElementById('editCategory').value,
+    tipo_presentacion:document.getElementById('editPresentationType').value,
+    team:document.getElementById('editTeam').value.trim(),
+    grado_seccion:document.getElementById('editGrade').value.trim()||null,
+    duracion_estimada:document.getElementById('editDuration').value.trim()||null,
+    tutor_name:document.getElementById('editTutor').value.trim()||null,
+    contact_email:document.getElementById('editContactEmail').value.trim(),
+    contact_phone:document.getElementById('editContactPhone').value.trim()||null,
+    description:document.getElementById('editDesc').value.trim(),
+    photo_url:document.getElementById('editPhoto').value.trim()||null,
+    estado_registro:status,
+    activo:status==='APROBADO'
+  };
+  const saveButton=e.submitter;
+  saveButton.disabled=true;
+  try{
+    const {error}=await supabaseClient.from('projects').update(payload).eq('id',id);
+    if(error) throw error;
+    closeEditModal();
+    await Promise.all([loadProjectsAndGroups(),loadResultsByCategory()]);
+  }catch(error){ alert('No se pudo guardar el proyecto: '+error.message); }
+  finally{ saveButton.disabled=false; }
+});
+document.getElementById('editPhotoFile').addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const status=document.getElementById('editPhotoStatus');
+  status.classList.remove('hidden'); status.textContent='Subiendo foto a Google Drive...';
+  try{
+    if(file.size>5*1024*1024) throw new Error('La imagen no puede superar 5 MB.');
+    const base64=await new Promise((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.onerror=reject; reader.readAsDataURL(file); });
+    const result=await window.appsScriptRequest({action:'upload',fileName:file.name,mimeType:file.type,base64Data:base64,folderId:window.DRIVE_FOLDER_ID||''});
+    document.getElementById('editPhoto').value=result.url;
+    status.textContent='Foto subida. Guarda el formulario para aplicar el cambio.';
+  }catch(error){ status.textContent='No se pudo subir: '+error.message; }
 });
 window.toggleVote=async(id, open)=>{ await supabaseClient.from('categories').update({votacion_abierta:open}).eq('id',id); loadVoteControls(); };
 window.deleteCat=async(id)=>{ if(confirm('Borrar categoria?')){ await supabaseClient.from('categories').delete().eq('id',id); loadCategories(); } };
